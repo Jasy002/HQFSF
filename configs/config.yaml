@@ -1,0 +1,35 @@
+project:
+  name: HQFSF
+  version: 1.0.0
+  author: Jasmine Sultana
+  description: Hybrid Quantum Feature Selection Framework
+
+dataset:
+  test_size: 0.2
+  random_state: 42
+  cross_validation: 5
+
+preprocessing:
+  scaler: minmax
+  handle_missing: true
+  remove_duplicates: true
+  encode_labels: true
+
+quantum:
+  qubits: 4
+  shots: 1024
+  optimizer: COBYLA
+  max_iterations: 100
+
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1
+    - roc_auc
+
+paths:
+  datasets: datasets/
+  outputs: outputs/
+  logs: logs/
