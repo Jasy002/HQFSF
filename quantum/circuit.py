@@ -1,12 +1,21 @@
 """
-Base Quantum Circuit for HQFSF.
+Quantum Circuit Builder for HQFSF.
 
-Provides a reusable wrapper around Qiskit's QuantumCircuit.
+Combines:
+    - Quantum Feature Encoder
+    - Variational Ansatz
+
+into a complete Variational Quantum Circuit (VQC).
 """
 
 from __future__ import annotations
 
+import numpy as np
+
 from qiskit import QuantumCircuit
+
+from quantum.encoder import QuantumEncoder
+from quantum.ansatz import VariationalAnsatz
 
 from utils.logger import get_logger
 
@@ -15,55 +24,104 @@ logger = get_logger(__name__)
 
 class HQFSFCircuit:
     """
-    Base quantum circuit class.
+    HQFSF Variational Quantum Circuit.
     """
 
-    def __init__(self, n_qubits: int):
+    def __init__(
+        self,
+        n_qubits: int,
+        layers: int = 2,
+        encoding: str = "ry",
+        entanglement: str = "linear",
+    ):
+
         self.n_qubits = n_qubits
-        self.circuit = QuantumCircuit(n_qubits)
+        self.layers = layers
+        self.encoding = encoding
+        self.entanglement = entanglement
+
+        self.encoder = QuantumEncoder(
+            n_qubits=n_qubits
+        )
+
+        self.ansatz = VariationalAnsatz(
+            n_qubits=n_qubits,
+            layers=layers,
+            entanglement=entanglement,
+        )
 
         logger.info(
-            "Initialized %d-qubit quantum circuit.",
+            "HQFSF Circuit initialized (%d qubits).",
             n_qubits,
         )
 
-    def add_barrier(self):
+    def build(
+        self,
+        features: np.ndarray,
+    ) -> QuantumCircuit:
         """
-        Insert a circuit barrier.
-        """
-        self.circuit.barrier()
-
-        logger.info("Barrier added.")
-
-    def measure_all(self):
-        """
-        Measure all qubits.
-        """
-        self.circuit.measure_all()
-
-        logger.info("Measurement added.")
-
-    def reset(self):
-        """
-        Reset the circuit.
-        """
-        self.circuit = QuantumCircuit(self.n_qubits)
-
-        logger.info("Circuit reset.")
-
-    def get_circuit(self):
-        """
-        Return the QuantumCircuit instance.
-        """
-        return self.circuit
-
-    def draw(self, output: str = "text"):
-        """
-        Draw the circuit.
+        Build the complete quantum circuit.
 
         Parameters
         ----------
-        output : str
-            text | mpl | latex
+        features : np.ndarray
+            Classical feature vector.
+
+        Returns
+        -------
+        QuantumCircuit
         """
-        return self.circuit.draw(output=output)
+
+        encoder_circuit = self.encoder.encode(
+            features,
+            encoding_method=self.encoding,
+        )
+
+        ansatz_circuit = self.ansatz.build()
+
+        full_circuit = QuantumCircuit(self.n_qubits)
+
+        full_circuit.compose(
+            encoder_circuit,
+            inplace=True,
+        )
+
+        full_circuit.barrier()
+
+        full_circuit.compose(
+            ansatz_circuit,
+            inplace=True,
+        )
+
+        logger.info(
+            "Complete HQFSF circuit constructed."
+        )
+
+        return full_circuit
+
+    def measure(
+        self,
+        circuit: QuantumCircuit,
+    ) -> QuantumCircuit:
+        """
+        Add measurements.
+        """
+
+        circuit.measure_all()
+
+        logger.info(
+            "Measurements added."
+        )
+
+        return circuit
+
+    @staticmethod
+    def draw(
+        circuit: QuantumCircuit,
+        output: str = "text",
+    ):
+        """
+        Draw the quantum circuit.
+        """
+
+        return circuit.draw(output=output)

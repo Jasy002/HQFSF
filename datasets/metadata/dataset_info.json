@@ -1,0 +1,12 @@
+{
+    "name": "Breast Cancer Wisconsin Diagnostic",
+    "source": "UCI Machine Learning Repository",
+    "samples": 569,
+    "features": 30,
+    "target": "diagnosis",
+    "task": "Binary Classification",
+    "classes": [
+        "Benign",
+        "Malignant"
+    ]
+}

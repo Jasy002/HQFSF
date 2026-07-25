@@ -1,31 +1,44 @@
-from classical.dataset import DatasetLoader
-from classical.preprocess import DataPreprocessor
+"""
+Test script for DataSplitter.
+"""
+
+from classical.dataset_loader import DatasetLoader
+from classical.preprocessing import DataPreprocessor
+from classical.feature_scaling import FeatureScaler
 from classical.splitter import DataSplitter
 
+# Load dataset
 loader = DatasetLoader()
-
 df = loader.load_builtin("breast_cancer")
 
-preprocessor = DataPreprocessor()
+# Preprocess
+preprocessor = DataPreprocessor(df)
+df = preprocessor.preprocess()
 
-df = preprocessor.clean(df)
+# Split features and target
+X, y = preprocessor.split_features_target(
+    df,
+    target_column="target"
+)
 
-X, y = preprocessor.split_features_target(df)
+# Scale features
+scaler = FeatureScaler(method="minmax")
+X = scaler.fit_transform(X)
 
-X = preprocessor.scale_features(X)
-
-splitter = DataSplitter()
+# Train-test split
+splitter = DataSplitter(
+    test_size=0.2,
+    random_state=42
+)
 
 X_train, X_test, y_train, y_test = splitter.split(X, y)
 
+print("\n========== Dataset Split ==========\n")
+
+print(f"Training Features : {X_train.shape}")
+print(f"Testing Features  : {X_test.shape}")
+
 print()
 
-print("Training Shape :", X_train.shape)
-
-print("Testing Shape  :", X_test.shape)
-
-print()
-
-print("Train Labels :", y_train.shape)
-
-print("Test Labels  :", y_test.shape)
+print(f"Training Labels   : {y_train.shape}")
+print(f"Testing Labels    : {y_test.shape}")

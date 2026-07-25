@@ -1,0 +1,26 @@
+datasets:
+
+  breast_cancer:
+    path: datasets/raw/breast_cancer.csv
+    target_column: target
+    task: classification
+
+  diabetes:
+    path: datasets/raw/diabetes.csv
+    target_column: Outcome
+    task: classification
+
+  heart:
+    path: datasets/raw/heart.csv
+    target_column: target
+    task: classification
+
+  wine:
+    path: datasets/raw/wine.csv
+    target_column: target
+    task: classification
+
+  sonar:
+    path: datasets/raw/sonar.csv
+    target_column: Class
+    task: classification

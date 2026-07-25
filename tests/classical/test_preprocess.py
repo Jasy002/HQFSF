@@ -1,20 +1,25 @@
-from classical.dataset import DatasetLoader
-from classical.preprocess import DataPreprocessor
+from classical.dataset_loader import DatasetLoader
+from classical.preprocessing import DataPreprocessor
 
+# Load dataset
 loader = DatasetLoader()
 
 df = loader.load_builtin("breast_cancer")
 
-preprocessor = DataPreprocessor("minmax")
+# Preprocess dataset
+preprocessor = DataPreprocessor(scaler="minmax")
 
 df = preprocessor.clean(df)
 
-X, y = preprocessor.split_features_target(df)
+# Split features and target
+X, y = preprocessor.split_features_target(
+    df,
+    target_column="target"
+)
 
+# Scale features
 X = preprocessor.scale_features(X)
 
 print(X.head())
-
 print()
-
 print(y.head())

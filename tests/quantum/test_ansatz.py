@@ -1,27 +1,49 @@
+"""
+Unit Test for VariationalAnsatz.
+"""
+
 from quantum.ansatz import VariationalAnsatz
 
-print("=" * 60)
+print("=" * 70)
+print("LINEAR ENTANGLEMENT")
+print("=" * 70)
 
-ansatz = VariationalAnsatz(
+linear_ansatz = VariationalAnsatz(
     n_qubits=4,
     layers=2,
     entanglement="linear",
 )
 
-qc = ansatz.build()
+linear_ansatz.summary()
 
-print(qc.draw())
+linear_circuit = linear_ansatz.build()
+
+print(linear_circuit.draw())
 
 print()
 
-print("=" * 60)
+print("Trainable Parameters")
+print(linear_ansatz.trainable_parameters)
 
-ansatz = VariationalAnsatz(
+print()
+
+print("=" * 70)
+print("CIRCULAR ENTANGLEMENT")
+print("=" * 70)
+
+circular_ansatz = VariationalAnsatz(
     n_qubits=4,
     layers=2,
     entanglement="circular",
 )
 
-qc = ansatz.build()
+circular_ansatz.summary()
 
-print(qc.draw())
+circular_circuit = circular_ansatz.build()
+
+print(circular_circuit.draw())
+
+print()
+
+print("Trainable Parameters")
+print(circular_ansatz.trainable_parameters)

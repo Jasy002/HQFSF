@@ -1,0 +1,10 @@
+Target Column:
+diagnosis
+
+Classes:
+
+M = Malignant
+B = Benign
+
+Problem Type:
+Binary Classification

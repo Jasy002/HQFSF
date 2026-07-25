@@ -1,0 +1,22 @@
+backend:
+  name: aer_simulator
+  shots: 1024
+
+encoding:
+  method: angle
+  feature_map: ry
+
+ansatz:
+  layers: 2
+  entanglement: linear
+  rotation_gates:
+    - ry
+    - rz
+
+optimizer:
+  name: COBYLA
+  max_iterations: 100
+  tolerance: 1e-6
+
+measurement:
+  observable: Z

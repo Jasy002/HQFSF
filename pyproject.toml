@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hqfsf"
+version = "1.0.0"
+description = "Hybrid Quantum Feature Selection Framework Using Variational Quantum Circuits"
+readme = "README.md"
+requires-python = ">=3.11"
+
+authors = [
+    {name = "Jasmine Sultana"}
+]
+
+license = {text = "MIT"}
+
+keywords = [
+    "Quantum Computing",
+    "Machine Learning",
+    "Feature Selection",
+    "Qiskit",
+    "VQC",
+    "AI"
+]

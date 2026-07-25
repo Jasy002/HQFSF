@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+
+  hqfsf:
+
+    build: .
+
+    container_name: hqfsf
+
+    restart: unless-stopped
+
+    volumes:
+      - .:/app
+
+    command: python run.py

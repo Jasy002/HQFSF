@@ -1,37 +1,52 @@
-# Virtual Environment
-.venv/
-venv/
-
+# ====================================
 # Python
+# ====================================
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Logs
-logs/*.log
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
 
 # Jupyter
 .ipynb_checkpoints/
 
-# VS Code
-.vscode/
+# Logs
+logs/
+*.log
 
-# macOS
-.DS_Store
+# Outputs
+outputs/
+results/
 
-# Windows
-Thumbs.db
-
-# Pytest
-.pytest_cache/
+# Models
+*.pkl
+*.pickle
+*.joblib
 
 # Coverage
 .coverage
 htmlcov/
+.pytest_cache/
 
-# Output files
-outputs/
-results/
+# Build
+build/
+dist/
+*.egg-info/
 
-# Environment
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment Variables
 .env
+
+# Temporary Files
+*.tmp
+*.bak

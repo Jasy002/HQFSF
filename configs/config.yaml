@@ -2,24 +2,46 @@ project:
   name: HQFSF
   version: 1.0.0
   author: Jasmine Sultana
-  description: Hybrid Quantum Feature Selection Framework
+  description: Hybrid Quantum Feature Selection Framework Using Variational Quantum Circuits
+
+execution:
+  random_seed: 42
+  save_results: true
+  save_models: true
+  verbose: true
+
+paths:
+  datasets: datasets/
+  outputs: outputs/
+  logs: logs/
+  models: outputs/models/
+  figures: outputs/figures/
 
 dataset:
-  test_size: 0.2
+  test_size: 0.20
   random_state: 42
   cross_validation: 5
+  shuffle: true
 
 preprocessing:
   scaler: minmax
   handle_missing: true
   remove_duplicates: true
   encode_labels: true
+  normalize_features: true
 
 quantum:
+  backend: aer_simulator
+  encoding: angle
   qubits: 4
+  ansatz_layers: 2
+  entanglement: linear
   shots: 1024
   optimizer: COBYLA
   max_iterations: 100
+
+classifier:
+  default: random_forest
 
 evaluation:
   metrics:
@@ -28,8 +50,7 @@ evaluation:
     - recall
     - f1
     - roc_auc
-
-paths:
-  datasets: datasets/
-  outputs: outputs/
-  logs: logs/
+    - mcc
+    - cohen_kappa
+    - feature_reduction_ratio
+    - execution_time
