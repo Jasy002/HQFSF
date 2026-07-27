@@ -4,13 +4,30 @@ services:
 
   hqfsf:
 
-    build: .
-
     container_name: hqfsf
 
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: hqfsf:latest
+
     restart: unless-stopped
+
+    working_dir: /app
+
+    command: python run.py
 
     volumes:
       - .:/app
 
-    command: python run.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    ports:
+      - "8000:8000"
+
+    stdin_open: true
+
+    tty: true

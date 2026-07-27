@@ -1,89 +1,101 @@
 """
-Confusion Matrix Visualization.
+==============================================================
+HQFSF Confusion Matrix Visualization
 
-Provides a visualization for classification results.
+Hybrid Quantum Feature Selection Framework (HQFSF)
+
+Provides confusion matrix visualization for evaluating
+classification performance.
+==============================================================
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-
-from sklearn.metrics import ConfusionMatrixDisplay
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
 
 class ConfusionMatrixPlot:
     """
-    Visualize a confusion matrix.
+    Visualize a confusion matrix for classification results.
     """
-
-    def __init__(self):
-        pass
 
     def plot(
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        labels: list | None = None,
+        labels: list[str] | None = None,
         title: str = "Confusion Matrix",
-        figsize: tuple = (8, 6),
+        figsize: tuple[int, int] = (8, 6),
         cmap: str = "Blues",
-        save_path: str | None = None,
+        save_path: str | Path | None = None,
         show: bool = True,
     ) -> np.ndarray:
         """
-        Plot confusion matrix.
+        Plot a confusion matrix.
 
         Parameters
         ----------
-        y_true : ndarray
+        y_true : np.ndarray
             Ground truth labels.
 
-        y_pred : ndarray
+        y_pred : np.ndarray
             Predicted labels.
+
+        labels : list[str] | None, optional
+            Display labels for each class.
+
+        Returns
+        -------
+        np.ndarray
+            Computed confusion matrix.
         """
 
-        cm = confusion_matrix(
-            y_true,
-            y_pred
-        )
+        cm = confusion_matrix(y_true, y_pred)
 
-        plt.figure(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize)
 
         display = ConfusionMatrixDisplay(
             confusion_matrix=cm,
-            display_labels=labels
+            display_labels=labels,
         )
 
         display.plot(
+            ax=ax,
             cmap=cmap,
             values_format="d",
-            colorbar=True
+            colorbar=True,
         )
 
-        plt.title(title)
+        ax.set_title(title)
 
-        plt.tight_layout()
+        fig.tight_layout()
 
         if save_path is not None:
-            plt.savefig(
+            fig.savefig(
                 save_path,
                 dpi=300,
-                bbox_inches="tight"
+                bbox_inches="tight",
             )
 
         if show:
             plt.show()
 
-        plt.close()
+        plt.close(fig)
 
         return cm
 
-    def summary(self):
+    @staticmethod
+    def summary() -> None:
+        """
+        Display a summary of the visualization.
+        """
 
         print("\n" + "=" * 60)
-        print(" Confusion Matrix Plot ")
+        print("Confusion Matrix Plot")
         print("=" * 60)
         print("Visualization : Confusion Matrix")
         print("Purpose       : Classification Performance")

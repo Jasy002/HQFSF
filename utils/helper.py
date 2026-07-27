@@ -1,64 +1,240 @@
 """
-Helper utilities for HQFSF.
+helper.py
+=========
+
+General helper functions for the
+Hybrid Quantum Feature Selection Framework (HQFSF).
 """
 
-import os
-import json
-import yaml
-from pathlib import Path
-from datetime import datetime
+from __future__ import annotations
+
+import random
+import time
+from functools import wraps
+from typing import Any
+
+import numpy as np
 
 
-def load_yaml(file_path: str) -> dict:
+# ==========================================================
+# TIMER DECORATOR
+# ==========================================================
+
+def timer(func):
     """
-    Load a YAML configuration file.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to YAML file.
-
-    Returns
-    -------
-    dict
-        Parsed configuration.
+    Decorator to measure execution time.
     """
-    with open(file_path, "r", encoding="utf-8") as file:
-        return yaml.safe_load(file)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        start = time.perf_counter()
+
+        result = func(*args, **kwargs)
+
+        end = time.perf_counter()
+
+        print(
+            f"{func.__name__} executed in "
+            f"{end - start:.4f} seconds."
+        )
+
+        return result
+
+    return wrapper
 
 
-def save_json(data: dict, file_path: str) -> None:
+# ==========================================================
+# EXECUTION TIME
+# ==========================================================
+
+def execution_time(start_time: float) -> float:
     """
-    Save dictionary as JSON.
+    Return elapsed execution time.
     """
-    with open(file_path, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=4)
+
+    return time.perf_counter() - start_time
 
 
-def create_directory(directory: str) -> None:
+# ==========================================================
+# NORMALIZE ARRAY
+# ==========================================================
+
+def normalize(values):
     """
-    Create directory if it doesn't exist.
+    Normalize values into the range [0, 1].
     """
-    Path(directory).mkdir(parents=True, exist_ok=True)
+
+    values = np.asarray(values)
+
+    minimum = values.min()
+
+    maximum = values.max()
+
+    if minimum == maximum:
+
+        return np.zeros_like(values)
+
+    return (
+        values - minimum
+    ) / (
+        maximum - minimum
+    )
 
 
-def file_exists(file_path: str) -> bool:
+# ==========================================================
+# TOP-K INDICES
+# ==========================================================
+
+def top_k(values, k: int):
     """
-    Check whether a file exists.
+    Return indices of the top-k values.
     """
-    return os.path.isfile(file_path)
+
+    values = np.asarray(values)
+
+    return np.argsort(values)[::-1][:k]
 
 
-def get_timestamp() -> str:
+# ==========================================================
+# FLATTEN LIST
+# ==========================================================
+
+def flatten(items):
     """
-    Return current timestamp.
+    Flatten nested lists.
     """
-    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    output = []
+
+    for item in items:
+
+        if isinstance(item, (list, tuple)):
+
+            output.extend(
+                flatten(item)
+            )
+
+        else:
+
+            output.append(item)
+
+    return output
 
 
-def ensure_directories(paths: list) -> None:
+# ==========================================================
+# PERCENTAGE
+# ==========================================================
+
+def percentage(
+    part: float,
+    total: float,
+) -> float:
     """
-    Create multiple directories.
+    Calculate percentage.
     """
-    for path in paths:
-        create_directory(path)
+
+    if total == 0:
+
+        return 0.0
+
+    return (part / total) * 100
+
+
+# ==========================================================
+# DICTIONARY MERGE
+# ==========================================================
+
+def merge_dicts(*dicts):
+    """
+    Merge multiple dictionaries.
+    """
+
+    merged = {}
+
+    for dictionary in dicts:
+
+        merged.update(dictionary)
+
+    return merged
+
+
+# ==========================================================
+# SPLIT INTO CHUNKS
+# ==========================================================
+
+def chunks(data, chunk_size):
+    """
+    Yield chunks from iterable.
+    """
+
+    for i in range(
+        0,
+        len(data),
+        chunk_size,
+    ):
+
+        yield data[
+            i:i + chunk_size
+        ]
+
+
+# ==========================================================
+# RANDOM ID
+# ==========================================================
+
+def random_id(
+    length: int = 8,
+):
+    """
+    Generate a random numeric identifier.
+    """
+
+    return "".join(
+
+        random.choice(
+            "0123456789"
+        )
+
+        for _ in range(length)
+    )
+
+
+# ==========================================================
+# SAFE DIVISION
+# ==========================================================
+
+def safe_divide(
+    numerator,
+    denominator,
+):
+    """
+    Perform safe division.
+    """
+
+    if denominator == 0:
+
+        return 0
+
+    return numerator / denominator
+
+
+# ==========================================================
+# CONVERT TO NUMPY
+# ==========================================================
+
+def to_numpy(data):
+    """
+    Convert input into NumPy array.
+    """
+
+    return np.asarray(data)
+
+
+# ==========================================================
+# REPRESENTATION
+# ==========================================================
+
+def __repr__():
+
+    return "HQFSF Helper Utilities"

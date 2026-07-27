@@ -1,72 +1,81 @@
 # Hybrid Quantum Feature Selection Framework (HQFSF)
 
+> A hybrid quantum-classical framework for feature selection using Variational Quantum Circuits (VQCs) and classical machine learning algorithms.
+
+---
+
 ## Overview
 
-HQFSF is a hybrid quantum-classical machine learning framework that performs feature selection using Variational Quantum Circuits (VQCs) before training classical machine learning models.
+The **Hybrid Quantum Feature Selection Framework (HQFSF)** combines quantum computing and classical machine learning to perform intelligent feature selection before model training. The framework uses Variational Quantum Circuits (VQCs) to estimate feature importance and then trains classical machine learning models using only the selected features.
 
-The project integrates quantum computing with traditional machine learning to reduce feature dimensionality while maintaining or improving predictive performance.
+This project was developed as part of an **M.Tech research project** focused on Quantum Machine Learning and Hybrid AI systems.
 
 ---
 
-## Features
+## Key Features
 
-- Hybrid Quantum-Classical Pipeline
+- Hybrid Quantum–Classical Pipeline
 - Variational Quantum Circuits (VQC)
 - Quantum Feature Selection
-- Multiple Classical Classifiers
-- Automated Evaluation
-- Benchmarking
-- Statistical Analysis
-- Visualization of Results
-- Modular Architecture
+- Multiple Machine Learning Models
+- Configurable YAML-based Architecture
+- Automated Evaluation Pipeline
+- Benchmarking Utilities
+- Result Export (CSV, Excel, JSON)
+- Visualization Utilities
+- Docker Support
+- Modular and Extensible Design
 
 ---
 
-## Folder Structure
+# Project Structure
 
 ```text
 HQFSF/
 │
-├── configs/
-├── datasets/
 ├── classical/
 ├── quantum/
-├── models/
 ├── pipeline/
-├── evaluation/
-├── visualization/
-├── experiments/
-├── tests/
-├── scripts/
-├── outputs/
-├── results/
+├── models/
+├── utils/
+├── configs/
 ├── docs/
-├── notebooks/
-├── logs/
+├── tests/
+├── datasets/
 │
 ├── main.py
 ├── run.py
 ├── requirements.txt
-└── README.md
+├── requirements-dev.txt
+├── pyproject.toml
+├── setup.py
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+├── README.md
+└── LICENSE
 ```
 
 ---
 
-## Technology Stack
+# Technology Stack
 
 - Python 3.11+
 - Qiskit
+- Qiskit Aer
 - NumPy
 - Pandas
 - Scikit-learn
 - SciPy
+- XGBoost
 - Matplotlib
 - Plotly
 - PyYAML
+- Joblib
 
 ---
 
-## Installation
+# Installation
 
 ```bash
 git clone https://github.com/Jasy002/HQFSF.git
@@ -78,94 +87,150 @@ pip install -r requirements.txt
 
 ---
 
-## Run Project
+# Running the Framework
 
 ```bash
 python run.py
 ```
 
----
-
-## Train
+or
 
 ```bash
-python scripts/train.py
+python main.py
 ```
 
 ---
 
-## Evaluate
+# Training
 
 ```bash
-python scripts/evaluate.py
+python docs/train.py
 ```
 
 ---
 
-## Benchmark
+# Evaluation
 
 ```bash
-python scripts/benchmark.py
+python docs/evaluate.py
 ```
 
 ---
 
-## Methodology
+# Benchmarking
+
+```bash
+python docs/benchmark.py
+```
+
+---
+
+# Export Results
+
+```bash
+python docs/export_results.py
+```
+
+---
+
+# Workflow
 
 1. Load Dataset
-2. Data Validation
+2. Validate Dataset
 3. Data Preprocessing
 4. Feature Scaling
 5. Quantum Feature Encoding
 6. Variational Quantum Circuit
 7. Expectation Value Computation
-8. Quantum Feature Selection
-9. Classical Machine Learning
-10. Evaluation
-11. Visualization
+8. Quantum Feature Ranking
+9. Feature Selection
+10. Classical Model Training
+11. Model Evaluation
+12. Result Export
 
 ---
 
-## Machine Learning Models
+# Supported Machine Learning Models
 
-- Logistic Regression
-- Support Vector Machine
 - Random Forest
+- Support Vector Machine (SVM)
+- Logistic Regression
+- XGBoost
 
 ---
 
-## Quantum Components
+# Quantum Components
 
-- Quantum Encoder
-- Variational Ansatz
-- Quantum Circuit
-- Optimizer
-- Measurement
-- Expectation Calculator
+- Quantum Feature Encoder
+- Variational Quantum Circuit (VQC)
+- EfficientSU2 Ansatz
+- Quantum Measurement
+- Expectation Value Calculator
+- Quantum Feature Selector
 
 ---
 
-## Evaluation Metrics
+# Evaluation Metrics
 
 - Accuracy
 - Precision
 - Recall
-- F1-score
+- F1-Score
 - ROC-AUC
-- Runtime
+- Confusion Matrix
 - Feature Reduction
-- Statistical Analysis
+- Training Time
 
 ---
 
-## Author
+# Configuration
+
+All project settings are stored in the `configs/` directory:
+
+- `config.yaml`
+- `datasets.yaml`
+- `logging.yaml`
+- `model.yaml`
+- `quantum.yaml`
+
+---
+
+# Docker
+
+Build the image:
+
+```bash
+docker compose build
+```
+
+Run the project:
+
+```bash
+docker compose up
+```
+
+---
+
+# Testing
+
+```bash
+pytest
+```
+
+---
+
+# License
+
+This project is licensed under the MIT License.
+
+---
+
+# Author
 
 **Jasmine Sultana**
 
 M.Tech in Computer Science (Artificial Intelligence)
 
----
+Vidyasagar University
 
-## License
-
-This project is licensed under the MIT License.
+GitHub: https://github.com/Jasy002/HQFSF

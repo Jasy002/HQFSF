@@ -1,22 +1,175 @@
+# ==========================================================
+# HQFSF Quantum Configuration
+# ==========================================================
+
+# Quantum backend configuration
 backend:
-  name: aer_simulator
+
+  provider: qiskit
+
+  backend: aer_simulator
+
+  use_gpu: false
+
   shots: 1024
 
-encoding:
-  method: angle
-  feature_map: ry
+  optimization_level: 3
 
-ansatz:
-  layers: 2
+  seed_simulator: 42
+
+# ==========================================================
+# Quantum Circuit
+# ==========================================================
+
+circuit:
+
+  num_qubits: 4
+
+  num_layers: 2
+
+  encoding: ry
+
   entanglement: linear
-  rotation_gates:
-    - ry
-    - rz
+
+  measurement: all
+
+# Available encodings:
+#   ry
+#   rx
+#   rz
+#   angle
+#   amplitude
+
+# Available entanglement:
+#   linear
+#   circular
+#   full
+
+# ==========================================================
+# Variational Quantum Circuit (VQC)
+# ==========================================================
+
+variational:
+
+  enabled: true
+
+  ansatz: efficient_su2
+
+  repetitions: 2
+
+  parameter_initialization: random
+
+# ==========================================================
+# Optimizer
+# ==========================================================
 
 optimizer:
-  name: COBYLA
-  max_iterations: 100
-  tolerance: 1e-6
 
-measurement:
+  name: COBYLA
+
+  max_iterations: 100
+
+  tolerance: 1.0e-6
+
+# Supported:
+# COBYLA
+# SPSA
+# ADAM
+# SLSQP
+# GradientDescent
+
+# ==========================================================
+# Feature Selection
+# ==========================================================
+
+feature_selection:
+
+  method: expectation_value
+
+  ranking: descending
+
+  top_k: 5
+
+  normalize_scores: true
+
+# ==========================================================
+# Expectation Value
+# ==========================================================
+
+expectation:
+
   observable: Z
+
+  aggregation: mean
+
+# ==========================================================
+# Noise Model
+# ==========================================================
+
+noise:
+
+  enabled: false
+
+  model: depolarizing
+
+  probability: 0.001
+
+# ==========================================================
+# IBM Quantum
+# ==========================================================
+
+ibm_quantum:
+
+  enabled: false
+
+  channel: ibm_quantum
+
+  instance: null
+
+  backend: ibm_brisbane
+
+# ==========================================================
+# Transpiler
+# ==========================================================
+
+transpiler:
+
+  optimization_level: 3
+
+  layout_method: sabre
+
+  routing_method: sabre
+
+# ==========================================================
+# Execution
+# ==========================================================
+
+execution:
+
+  batch_size: 32
+
+  parallel_execution: false
+
+# ==========================================================
+# Logging
+# ==========================================================
+
+logging:
+
+  save_circuits: true
+
+  save_results: true
+
+  verbose: true
+
+# ==========================================================
+# Reproducibility
+# ==========================================================
+
+reproducibility:
+
+  random_seed: 42
+
+# ==========================================================
+# End
+# ==========================================================

@@ -1,23 +1,35 @@
 """
-Unit Test for ClassicalPipeline.
+HQFSF Pipeline Package
+======================
+
+High-level orchestration layer for the
+Hybrid Quantum Feature Selection Framework (HQFSF).
+
+Modules
+-------
+ClassicalPipeline
+    Dataset loading, preprocessing and train-test splitting.
+
+QuantumPipeline
+    Quantum feature encoding, execution and feature selection.
+
+EvaluationPipeline
+    Classification metrics and performance evaluation.
+
+HQFSFPipeline
+    End-to-end workflow combining all pipeline stages.
 """
 
-from pipeline.classical_pipeline import ClassicalPipeline
+from .classical_pipeline import ClassicalPipeline
+from .quantum_pipeline import QuantumPipeline
+from .evaluation_pipeline import EvaluationPipeline
+from .hqfsf_pipeline import HQFSFPipeline
 
+__all__ = [
+    "ClassicalPipeline",
+    "QuantumPipeline",
+    "EvaluationPipeline",
+    "HQFSFPipeline",
+]
 
-pipeline = ClassicalPipeline(
-    dataset_path="datasets/sample.csv",
-    target_column="target",
-    scaler="standard",
-    test_size=0.2,
-)
-
-pipeline.summary()
-
-X_train, X_test, y_train, y_test = pipeline.run()
-
-print("Training Shape :", X_train.shape)
-print("Testing Shape  :", X_test.shape)
-
-print("Train Labels :", y_train.shape)
-print("Test Labels  :", y_test.shape)
+__version__ = "1.0.0"

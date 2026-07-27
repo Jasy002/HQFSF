@@ -1,10 +1,17 @@
 """
-Runtime Plot Visualization.
+==============================================================
+HQFSF Runtime Plot Visualization
 
-Compares execution time of different models or pipeline stages.
+Hybrid Quantum Feature Selection Framework (HQFSF)
+
+Provides visualization for comparing the execution
+time of machine learning models or pipeline stages.
+==============================================================
 """
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
@@ -14,16 +21,13 @@ class RuntimePlot:
     Plot execution time comparison.
     """
 
-    def __init__(self):
-        pass
-
     def plot(
         self,
-        labels: list,
-        runtimes: list,
+        labels: list[str],
+        runtimes: list[float],
         title: str = "Runtime Comparison",
-        figsize: tuple = (10, 6),
-        save_path: str | None = None,
+        figsize: tuple[int, int] = (10, 6),
+        save_path: str | Path | None = None,
         show: bool = True,
     ) -> None:
         """
@@ -31,30 +35,48 @@ class RuntimePlot:
 
         Parameters
         ----------
-        labels : list
-            Model or pipeline names.
+        labels : list[str]
+            Model or pipeline stage names.
 
-        runtimes : list
-            Execution time in seconds.
+        runtimes : list[float]
+            Execution times in seconds.
+
+        title : str, optional
+            Plot title.
+
+        figsize : tuple[int, int], optional
+            Figure size.
+
+        save_path : str | Path | None, optional
+            Output image path.
+
+        show : bool, optional
+            Whether to display the figure.
         """
 
-        plt.figure(figsize=figsize)
+        if len(labels) != len(runtimes):
+            raise ValueError(
+                "labels and runtimes must have the same length."
+            )
 
-        plt.bar(
-            labels,
-            runtimes,
+        fig, ax = plt.subplots(figsize=figsize)
+
+        bars = ax.bar(labels, runtimes)
+
+        ax.set_xlabel("Models / Pipeline Stages")
+        ax.set_ylabel("Runtime (seconds)")
+        ax.set_title(title)
+
+        ax.grid(
+            axis="y",
+            linestyle="--",
+            alpha=0.5,
         )
 
-        plt.xlabel("Models / Pipeline Stages")
+        for bar, value in zip(bars, runtimes):
 
-        plt.ylabel("Runtime (seconds)")
-
-        plt.title(title)
-
-        # Display runtime values
-        for index, value in enumerate(runtimes):
-            plt.text(
-                index,
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
                 value,
                 f"{value:.3f}s",
                 ha="center",
@@ -62,16 +84,10 @@ class RuntimePlot:
                 fontsize=10,
             )
 
-        plt.grid(
-            axis="y",
-            linestyle="--",
-            alpha=0.5,
-        )
-
-        plt.tight_layout()
+        fig.tight_layout()
 
         if save_path is not None:
-            plt.savefig(
+            fig.savefig(
                 save_path,
                 dpi=300,
                 bbox_inches="tight",
@@ -80,12 +96,16 @@ class RuntimePlot:
         if show:
             plt.show()
 
-        plt.close()
+        plt.close(fig)
 
-    def summary(self):
+    @staticmethod
+    def summary() -> None:
+        """
+        Display a summary of the visualization.
+        """
 
         print("\n" + "=" * 60)
-        print(" Runtime Plot ")
+        print("Runtime Plot")
         print("=" * 60)
         print("Visualization : Bar Chart")
         print("Purpose       : Compare Execution Time")

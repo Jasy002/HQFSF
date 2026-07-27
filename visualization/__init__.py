@@ -1,41 +1,46 @@
 """
-Visualization Package.
+==============================================================
+HQFSF Visualization Package
 
-Provides visualization utilities for the
-Hybrid Quantum Feature Selection Framework (HQFSF).
+Hybrid Quantum Feature Selection Framework (HQFSF)
 
-Modules
--------
-- Feature Importance
-- Confusion Matrix
-- ROC Curve
-- Accuracy Plot
-- Convergence Plot
-- Runtime Plot
-- General Plots
-- Report Generator
+Provides visualization utilities for:
+
+• Feature Importance
+• Confusion Matrix
+• ROC Curve
+• Accuracy Plot
+• Convergence Plot
+• Runtime Plot
+• General Plot Utilities
+• Report Generation
+
+This package centralizes all visualization components
+used throughout the HQFSF pipeline.
+==============================================================
 """
 
-from .feature_importance import FeatureImportancePlot
-from .confusion_matrix import ConfusionMatrixPlot
-from .roc_curve import ROCPlot
+from __future__ import annotations
+
 from .accuracy_plot import AccuracyPlot
+from .confusion_matrix import ConfusionMatrixPlot
 from .convergence_plot import ConvergencePlot
-from .runtime_plot import RuntimePlot
+from .feature_importance import FeatureImportancePlot
 from .plots import PlotManager
 from .report import ReportGenerator
-
-__all__ = [
-    "FeatureImportancePlot",
-    "ConfusionMatrixPlot",
-    "ROCPlot",
-    "AccuracyPlot",
-    "ConvergencePlot",
-    "RuntimePlot",
-    "PlotManager",
-    "ReportGenerator",
-]
+from .roc_curve import ROCPlot
+from .runtime_plot import RuntimePlot
 
 __version__ = "1.0.0"
-
 __author__ = "Jasmine Sultana"
+
+__all__ = [
+    "AccuracyPlot",
+    "ConfusionMatrixPlot",
+    "ConvergencePlot",
+    "FeatureImportancePlot",
+    "PlotManager",
+    "ROCPlot",
+    "ReportGenerator",
+    "RuntimePlot",
+]

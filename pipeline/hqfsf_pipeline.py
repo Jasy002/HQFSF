@@ -1,23 +1,10 @@
 """
-HQFSF Pipeline.
+HQFSF Master Pipeline
 
-Hybrid Quantum Feature Selection Framework
-
-Workflow
---------
-Dataset
-    │
-    ▼
-Classical Pipeline
-    │
-    ▼
-Quantum Pipeline
-    │
-    ▼
-Feature Selection
-    │
-    ▼
-Evaluation Pipeline
+Coordinates:
+    1. Classical Pipeline
+    2. Quantum Pipeline
+    3. Evaluation Pipeline
 """
 
 from __future__ import annotations
@@ -37,7 +24,7 @@ logger = get_logger(__name__)
 
 class HQFSFPipeline:
     """
-    Hybrid Quantum Feature Selection Framework Pipeline.
+    Complete Hybrid Quantum Feature Selection Framework.
     """
 
     def __init__(
@@ -46,117 +33,126 @@ class HQFSFPipeline:
         target_column: str,
         n_qubits: int,
         layers: int = 2,
-        encoding: str = "ry",
-        entanglement: str = "linear",
-        backend_type: str = "aer_simulator",
-        shots: int = 1024,
-        scaler: str = "standard",
-        test_size: float = 0.20,
-        random_state: int = 42,
-        selection_strategy: str = "top_k",
         top_k: int = 5,
-        threshold: float = 0.5,
     ):
 
         self.classical_pipeline = ClassicalPipeline(
             dataset_path=dataset_path,
             target_column=target_column,
-            scaler=scaler,
-            test_size=test_size,
-            random_state=random_state,
         )
 
         self.quantum_pipeline = QuantumPipeline(
             n_qubits=n_qubits,
             layers=layers,
-            encoding=encoding,
-            entanglement=entanglement,
-            backend_type=backend_type,
-            shots=shots,
-            selection_strategy=selection_strategy,
             top_k=top_k,
-            threshold=threshold,
         )
 
         self.evaluation_pipeline = EvaluationPipeline()
 
         logger.info(
-            "HQFSF Pipeline initialized."
+            "HQFSFPipeline initialized."
         )
+
+    # ----------------------------------------------------------
+    # Execute Complete Pipeline
+    # ----------------------------------------------------------
 
     def run(self) -> Dict[str, Any]:
-        """
-        Execute the HQFSF pipeline.
-        """
 
-        logger.info("=" * 70)
+        logger.info("=" * 60)
         logger.info("Starting HQFSF Pipeline")
-        logger.info("=" * 70)
+        logger.info("=" * 60)
 
-        # ------------------------------------------------
-        # Classical Pipeline
-        # ------------------------------------------------
+        # --------------------------------------------------
+        # Stage 1 : Classical Processing
+        # --------------------------------------------------
 
-        classical = self.classical_pipeline.run()
-
-        X_train = classical["X_train"]
-        X_test = classical["X_test"]
-
-        y_train = classical["y_train"]
-        y_test = classical["y_test"]
-
-        feature_names = classical["feature_names"]
-
-        # ------------------------------------------------
-        # Quantum Pipeline
-        # ------------------------------------------------
-
-        quantum = self.quantum_pipeline.run(
-            X_train
+        classical_result = (
+            self.classical_pipeline.run()
         )
 
-        selected_features = quantum[
+        X_train = classical_result["X_train"]
+        X_test = classical_result["X_test"]
+
+        y_train = classical_result["y_train"]
+        y_test = classical_result["y_test"]
+
+        feature_names = classical_result[
+            "feature_names"
+        ]
+
+        logger.info(
+            "Classical Pipeline completed."
+        )
+
+        # --------------------------------------------------
+        # Stage 2 : Quantum Feature Selection
+        # --------------------------------------------------
+
+        quantum_result = (
+            self.quantum_pipeline.run(
+                X_train
+            )
+        )
+
+        selected_features = quantum_result[
             "selected_features"
         ]
 
-        importance_scores = quantum[
+        importance_scores = quantum_result[
             "importance_scores"
         ]
 
-        ranking = quantum["ranking"]
+        ranking = quantum_result[
+            "ranking"
+        ]
 
-        # ------------------------------------------------
-        # Placeholder Prediction
-        # ------------------------------------------------
+        logger.info(
+            "Quantum Pipeline completed."
+        )
+
+        # --------------------------------------------------
+        # Placeholder Model Prediction
+        # --------------------------------------------------
         #
-        # Replace this section with your classifier
-        # (Random Forest, SVM, XGBoost, etc.)
+        # Replace this section with your actual
+        # Random Forest / SVM / XGBoost model.
         #
 
         y_pred = np.copy(y_test)
 
-        # ------------------------------------------------
-        # Evaluation
-        # ------------------------------------------------
+        # --------------------------------------------------
+        # Stage 3 : Evaluation
+        # --------------------------------------------------
 
-        evaluation = self.evaluation_pipeline.run(
-            y_true=y_test,
-            y_pred=y_pred,
-            original_features=len(feature_names),
-            selected_features=len(selected_features),
+        evaluation_result = (
+            self.evaluation_pipeline.run(
+                y_true=y_test,
+                y_pred=y_pred,
+                original_features=len(
+                    feature_names
+                ),
+                selected_features=len(
+                    selected_features
+                ),
+            )
         )
 
         logger.info(
-            "HQFSF Pipeline completed successfully."
+            "Evaluation completed."
         )
+
+        logger.info("=" * 60)
+        logger.info("HQFSF Pipeline Finished")
+        logger.info("=" * 60)
 
         return {
 
-            "classical": classical,
+            "classical": classical_result,
 
-            "quantum": quantum,
+            "quantum": quantum_result,
 
-            "evaluation": evaluation,
+            "evaluation": evaluation_result,
 
             "selected_features": selected_features,
 
@@ -165,16 +161,32 @@ class HQFSFPipeline:
             "ranking": ranking,
         }
 
+    # ----------------------------------------------------------
+    # Summary
+    # ----------------------------------------------------------
+
     def summary(self):
 
-        print("\n" + "=" * 70)
+        print("\n" + "=" * 60)
         print(" Hybrid Quantum Feature Selection Framework ")
-        print("=" * 70)
+        print("=" * 60)
 
-        print("Pipeline Components")
+        self.classical_pipeline.summary()
 
-        print("✓ Classical Pipeline")
-        print("✓ Quantum Pipeline")
-        print("✓ Evaluation Pipeline")
+        self.quantum_pipeline.summary()
 
-        print("=" * 70 + "\n")
+        print("Evaluation Module : Ready")
+
+        print("=" * 60 + "\n")
+
+    # ----------------------------------------------------------
+    # Representation
+    # ----------------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            "HQFSFPipeline("
+            f"classical={self.classical_pipeline}, "
+            f"quantum={self.quantum_pipeline})"
+        )

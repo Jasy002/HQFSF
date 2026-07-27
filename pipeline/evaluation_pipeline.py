@@ -2,9 +2,10 @@
 Evaluation Pipeline for HQFSF.
 
 Responsible for:
-    - Model Evaluation
     - Classification Metrics
-    - Feature Reduction Statistics
+    - Confusion Matrix
+    - Feature Reduction
+    - Model Evaluation
 """
 
 from __future__ import annotations
@@ -12,7 +13,6 @@ from __future__ import annotations
 from typing import Dict, Any
 
 from quantum.metrics import QuantumMetrics
-
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -31,6 +31,10 @@ class EvaluationPipeline:
             "EvaluationPipeline initialized."
         )
 
+    # ----------------------------------------------------------
+    # Execute Evaluation
+    # ----------------------------------------------------------
+
     def run(
         self,
         y_true,
@@ -39,12 +43,16 @@ class EvaluationPipeline:
         selected_features: int,
     ) -> Dict[str, Any]:
         """
-        Evaluate HQFSF performance.
+        Evaluate the HQFSF model.
         """
 
         logger.info("=" * 60)
         logger.info("Starting Evaluation Pipeline")
         logger.info("=" * 60)
+
+        # ---------------------------------------------
+        # Classification Metrics
+        # ---------------------------------------------
 
         accuracy = self.metrics.accuracy(
             y_true,
@@ -66,14 +74,16 @@ class EvaluationPipeline:
             y_pred,
         )
 
-        confusion = self.metrics.confusion(
+        confusion_matrix = self.metrics.confusion(
             y_true,
             y_pred,
         )
 
-        reduction = self.metrics.feature_reduction(
-            original_features,
-            selected_features,
+        feature_reduction = (
+            self.metrics.feature_reduction(
+                original_features,
+                selected_features,
+            )
         )
 
         logger.info(
@@ -81,13 +91,23 @@ class EvaluationPipeline:
         )
 
         return {
+
             "accuracy": accuracy,
+
             "precision": precision,
+
             "recall": recall,
+
             "f1_score": f1_score,
-            "confusion_matrix": confusion,
-            "feature_reduction": reduction,
+
+            "confusion_matrix": confusion_matrix,
+
+            "feature_reduction": feature_reduction,
         }
+
+    # ----------------------------------------------------------
+    # Summary
+    # ----------------------------------------------------------
 
     def summary(
         self,
@@ -95,14 +115,28 @@ class EvaluationPipeline:
         y_pred,
         original_features: int,
         selected_features: int,
-    ) -> None:
-        """
-        Display evaluation summary.
-        """
+    ):
+
+        print("\n" + "=" * 60)
+        print(" HQFSF Evaluation Pipeline ")
+        print("=" * 60)
 
         self.metrics.summary(
             y_true=y_true,
             y_pred=y_pred,
             original_features=original_features,
             selected_features=selected_features,
+        )
+
+        print("=" * 60 + "\n")
+
+    # ----------------------------------------------------------
+    # Representation
+    # ----------------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            "EvaluationPipeline("
+            "metrics=QuantumMetrics)"
         )

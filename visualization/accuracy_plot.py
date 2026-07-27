@@ -1,29 +1,33 @@
 """
-Accuracy Plot Visualization.
+==============================================================
+HQFSF Accuracy Plot
 
-Compares the accuracy of multiple machine learning models.
+Hybrid Quantum Feature Selection Framework (HQFSF)
+
+Provides visualization for comparing the classification
+accuracy of multiple machine learning models.
+==============================================================
 """
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 
 class AccuracyPlot:
     """
-    Plot classification accuracy.
+    Create bar charts for model accuracy comparison.
     """
-
-    def __init__(self):
-        pass
 
     def plot(
         self,
-        model_names: list,
-        accuracies: list,
+        model_names: list[str],
+        accuracies: list[float],
         title: str = "Model Accuracy Comparison",
-        figsize: tuple = (10, 6),
-        save_path: str | None = None,
+        figsize: tuple[int, int] = (10, 6),
+        save_path: str | Path | None = None,
         show: bool = True,
     ) -> None:
         """
@@ -31,48 +35,60 @@ class AccuracyPlot:
 
         Parameters
         ----------
-        model_names : list
-            Names of classifiers.
+        model_names : list[str]
+            Names of the machine learning models.
 
-        accuracies : list
-            Accuracy values.
+        accuracies : list[float]
+            Accuracy values between 0 and 1.
+
+        title : str, optional
+            Plot title.
+
+        figsize : tuple[int, int], optional
+            Figure size.
+
+        save_path : str | Path | None, optional
+            Output image path.
+
+        show : bool, optional
+            Display the figure.
         """
 
-        plt.figure(figsize=figsize)
+        if len(model_names) != len(accuracies):
+            raise ValueError(
+                "model_names and accuracies must have the same length."
+            )
 
-        plt.bar(
-            model_names,
-            accuracies,
+        fig, ax = plt.subplots(figsize=figsize)
+
+        bars = ax.bar(model_names, accuracies)
+
+        ax.set_ylim(0, 1)
+
+        ax.set_xlabel("Models")
+        ax.set_ylabel("Accuracy")
+        ax.set_title(title)
+
+        ax.grid(
+            axis="y",
+            linestyle="--",
+            alpha=0.5,
         )
 
-        plt.ylim(0, 1)
+        for bar, value in zip(bars, accuracies):
 
-        plt.xlabel("Models")
-
-        plt.ylabel("Accuracy")
-
-        plt.title(title)
-
-        # Display accuracy values
-        for index, value in enumerate(accuracies):
-            plt.text(
-                index,
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
                 value + 0.01,
                 f"{value:.3f}",
                 ha="center",
                 fontsize=10,
             )
 
-        plt.grid(
-            axis="y",
-            linestyle="--",
-            alpha=0.5,
-        )
-
-        plt.tight_layout()
+        fig.tight_layout()
 
         if save_path is not None:
-            plt.savefig(
+            fig.savefig(
                 save_path,
                 dpi=300,
                 bbox_inches="tight",
@@ -81,12 +97,16 @@ class AccuracyPlot:
         if show:
             plt.show()
 
-        plt.close()
+        plt.close(fig)
 
-    def summary(self):
+    @staticmethod
+    def summary() -> None:
+        """
+        Display a summary of the visualization.
+        """
 
         print("\n" + "=" * 60)
-        print(" Accuracy Plot ")
+        print("Accuracy Plot")
         print("=" * 60)
         print("Visualization : Bar Chart")
         print("Purpose       : Compare Model Accuracy")

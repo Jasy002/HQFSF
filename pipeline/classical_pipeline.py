@@ -4,7 +4,7 @@ Classical Pipeline for HQFSF.
 Responsible for:
     - Loading dataset
     - Validating dataset
-    - Preprocessing
+    - Data preprocessing
     - Feature scaling
     - Train-test splitting
 """
@@ -12,8 +12,6 @@ Responsible for:
 from __future__ import annotations
 
 from typing import Dict, Any
-
-import pandas as pd
 
 from classical.dataset_loader import DatasetLoader
 from classical.validation import DataValidator
@@ -29,25 +27,6 @@ logger = get_logger(__name__)
 class ClassicalPipeline:
     """
     End-to-End Classical Pipeline.
-
-    Workflow
-    --------
-    Dataset
-        │
-        ▼
-    Dataset Loader
-        │
-        ▼
-    Data Validation
-        │
-        ▼
-    Data Preprocessing
-        │
-        ▼
-    Feature Scaling
-        │
-        ▼
-    Train-Test Split
     """
 
     def __init__(
@@ -58,26 +37,6 @@ class ClassicalPipeline:
         test_size: float = 0.20,
         random_state: int = 42,
     ) -> None:
-        """
-        Initialize the Classical Pipeline.
-
-        Parameters
-        ----------
-        dataset_path : str
-            Path to dataset.
-
-        target_column : str
-            Name of target column.
-
-        scaler : str
-            Scaling method.
-
-        test_size : float
-            Test split ratio.
-
-        random_state : int
-            Random seed.
-        """
 
         self.dataset_path = dataset_path
         self.target_column = target_column
@@ -101,23 +60,22 @@ class ClassicalPipeline:
             "ClassicalPipeline initialized."
         )
 
+    # ----------------------------------------------------------
+    # Run Pipeline
+    # ----------------------------------------------------------
+
     def run(self) -> Dict[str, Any]:
         """
-        Execute the complete classical pipeline.
-
-        Returns
-        -------
-        dict
-            Dictionary containing train-test data.
+        Execute the Classical Pipeline.
         """
 
         logger.info("=" * 60)
         logger.info("Starting Classical Pipeline")
         logger.info("=" * 60)
 
-        # --------------------------------------------------
+        # ----------------------------------------
         # Load Dataset
-        # --------------------------------------------------
+        # ----------------------------------------
 
         logger.info("Loading dataset...")
 
@@ -128,15 +86,17 @@ class ClassicalPipeline:
         )
 
         logger.info(
-            "Dataset Shape: %s",
+            "Dataset Shape : %s",
             df.shape,
         )
 
-        # --------------------------------------------------
-        # Validate Dataset
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Validation
+        # ----------------------------------------
 
-        logger.info("Validating dataset...")
+        logger.info(
+            "Validating dataset..."
+        )
 
         self.validator.validate(df)
 
@@ -144,21 +104,25 @@ class ClassicalPipeline:
             "Dataset validation completed."
         )
 
-        # --------------------------------------------------
-        # Check Target Column
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Target Column
+        # ----------------------------------------
 
         if self.target_column not in df.columns:
+
             raise ValueError(
-                f"Target column '{self.target_column}' "
-                "not found in dataset."
+                f"Target column "
+                f"'{self.target_column}' "
+                f"not found."
             )
 
-        # --------------------------------------------------
-        # Preprocess
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Preprocessing
+        # ----------------------------------------
 
-        logger.info("Preprocessing dataset...")
+        logger.info(
+            "Preprocessing dataset..."
+        )
 
         df = self.preprocessor.preprocess(df)
 
@@ -166,9 +130,9 @@ class ClassicalPipeline:
             "Preprocessing completed."
         )
 
-        # --------------------------------------------------
-        # Split Features & Target
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Features / Labels
+        # ----------------------------------------
 
         X = df.drop(
             columns=[self.target_column]
@@ -182,35 +146,40 @@ class ClassicalPipeline:
         )
 
         logger.info(
-            "Target Vector Shape  : %s",
+            "Target Vector Shape : %s",
             y.shape,
         )
 
-        # --------------------------------------------------
-        # Feature Scaling
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Scaling
+        # ----------------------------------------
 
-        logger.info("Scaling features...")
+        logger.info(
+            "Scaling features..."
+        )
 
         X = self.scaler.fit_transform(X)
 
         logger.info(
-            "Feature scaling completed."
+            "Scaling completed."
         )
 
-        # --------------------------------------------------
-        # Train Test Split
-        # --------------------------------------------------
+        # ----------------------------------------
+        # Split
+        # ----------------------------------------
 
         logger.info(
             "Splitting dataset..."
         )
 
-        X_train, X_test, y_train, y_test = (
-            self.splitter.split(
-                X,
-                y,
-            )
+        (
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+        ) = self.splitter.split(
+            X,
+            y,
         )
 
         logger.info(
@@ -223,7 +192,7 @@ class ClassicalPipeline:
         )
 
         logger.info(
-            "X_test  : %s",
+            "X_test : %s",
             X_test.shape,
         )
 
@@ -233,35 +202,69 @@ class ClassicalPipeline:
         )
 
         logger.info(
-            "y_test  : %s",
+            "y_test : %s",
             y_test.shape,
         )
 
         logger.info(
-            "Classical Pipeline completed successfully."
+            "Classical Pipeline completed."
         )
 
         return {
+
             "X_train": X_train,
+
             "X_test": X_test,
+
             "y_train": y_train,
+
             "y_test": y_test,
-            "feature_names": list(X.columns),
+
+            "feature_names": list(
+                X.columns
+            ),
         }
 
+    # ----------------------------------------------------------
+    # Summary
+    # ----------------------------------------------------------
+
     def summary(self) -> None:
-        """
-        Display pipeline configuration.
-        """
 
-        print("\n" + "=" * 55)
-        print("        HQFSF Classical Pipeline")
-        print("=" * 55)
+        print("\n" + "=" * 60)
+        print(" HQFSF Classical Pipeline ")
+        print("=" * 60)
 
-        print(f"Dataset Path  : {self.dataset_path}")
-        print(f"Target Column : {self.target_column}")
-        print(f"Scaler        : {self.scaler.method.upper()}")
-        print(f"Test Size     : {self.splitter.test_size}")
-        print(f"Random State  : {self.splitter.random_state}")
+        print(
+            f"Dataset Path : {self.dataset_path}"
+        )
 
-        print("=" * 55 + "\n")
+        print(
+            f"Target Column : {self.target_column}"
+        )
+
+        print(
+            f"Scaler : {self.scaler.method.upper()}"
+        )
+
+        print(
+            f"Test Size : {self.splitter.test_size}"
+        )
+
+        print(
+            f"Random State : {self.splitter.random_state}"
+        )
+
+        print("=" * 60 + "\n")
+
+    # ----------------------------------------------------------
+    # Representation
+    # ----------------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            "ClassicalPipeline("
+            f"dataset_path='{self.dataset_path}', "
+            f"target_column='{self.target_column}')"
+        )

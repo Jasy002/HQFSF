@@ -1,71 +1,175 @@
 """
-Main Entry Point for HQFSF.
+==============================================================
+HQFSF Main Entry Point
 
 Hybrid Quantum Feature Selection Framework
 Using Variational Quantum Circuits
+
+Author  : Jasmine Sultana
+Version : 1.0.0
+License : MIT
+==============================================================
 """
+
+from __future__ import annotations
+
+import sys
+import traceback
+from pathlib import Path
 
 from pipeline.hqfsf_pipeline import HQFSFPipeline
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+PROJECT_NAME = "Hybrid Quantum Feature Selection Framework"
+CONFIG_DIR = Path("configs")
 
-def main():
-    """
-    Execute the HQFSF pipeline.
-    """
 
-    logger.info("=" * 70)
-    logger.info("Starting HQFSF Project")
-    logger.info("=" * 70)
+def print_banner() -> None:
+    """Display the application banner."""
 
-    pipeline = HQFSFPipeline(
-        dataset_path="datasets/sample.csv",
-        target_column="target",
-
-        # Quantum Configuration
-        n_qubits=4,
-        layers=2,
-        encoding="ry",
-        entanglement="linear",
-        backend_type="aer_simulator",
-        shots=1024,
-
-        # Classical Configuration
-        scaler="standard",
-        test_size=0.20,
-        random_state=42,
-
-        # Feature Selection
-        selection_strategy="top_k",
-        top_k=5,
-        threshold=0.5,
-    )
-
-    pipeline.summary()
-
-    results = pipeline.run()
-
-    print("\n" + "=" * 70)
-    print("HQFSF EXECUTION COMPLETED")
+    print("=" * 70)
+    print(PROJECT_NAME)
     print("=" * 70)
 
-    print("\nSelected Features:")
-    print(results["selected_features"])
 
-    print("\nFeature Importance Scores:")
-    print(results["importance_scores"])
+def print_summary(results: dict) -> None:
+    """
+    Print execution summary.
+    """
 
-    print("\nFeature Ranking:")
-    print(results["ranking"])
+    print("\n" + "=" * 70)
+    print("HQFSF EXECUTION SUMMARY")
+    print("=" * 70)
 
-    print("\nEvaluation Metrics:")
-    for metric, value in results["evaluation"].items():
-        print(f"{metric}: {value}")
+    if not results:
+        print("No results were returned.")
+        return
 
-    logger.info("HQFSF execution completed successfully.")
+    # ------------------------------------------------------
+    # Selected Features
+    # ------------------------------------------------------
+
+    selected = results.get("selected_features")
+
+    if selected is not None:
+
+        print("\nSelected Features")
+        print("-" * 70)
+        print(selected)
+
+    # ------------------------------------------------------
+    # Feature Ranking
+    # ------------------------------------------------------
+
+    ranking = results.get("ranking")
+
+    if ranking is not None:
+
+        print("\nFeature Ranking")
+        print("-" * 70)
+        print(ranking)
+
+    # ------------------------------------------------------
+    # Importance Scores
+    # ------------------------------------------------------
+
+    scores = results.get("importance_scores")
+
+    if scores is not None:
+
+        print("\nImportance Scores")
+        print("-" * 70)
+        print(scores)
+
+    # ------------------------------------------------------
+    # Evaluation Metrics
+    # ------------------------------------------------------
+
+    evaluation = results.get("evaluation")
+
+    if isinstance(evaluation, dict):
+
+        print("\nEvaluation Metrics")
+        print("-" * 70)
+
+        for metric, value in evaluation.items():
+            print(f"{metric:<25}: {value}")
+
+    print("\nExecution Completed Successfully.")
+    print("=" * 70)
+
+
+def main() -> int:
+    """
+    Execute the complete HQFSF workflow.
+
+    Returns
+    -------
+    int
+        Exit status code.
+    """
+
+    print_banner()
+
+    logger.info("Starting HQFSF framework.")
+    logger.info("Loading configuration from '%s'.", CONFIG_DIR)
+
+    try:
+
+        # --------------------------------------------------
+        # Initialize Pipeline
+        # --------------------------------------------------
+
+        pipeline = HQFSFPipeline(
+            config_path=CONFIG_DIR
+        )
+
+        logger.info("Pipeline initialized successfully.")
+
+        # Optional summary if implemented
+        if hasattr(pipeline, "summary"):
+            pipeline.summary()
+
+        # --------------------------------------------------
+        # Execute Pipeline
+        # --------------------------------------------------
+
+        logger.info("Executing HQFSF pipeline...")
+
+        results = pipeline.run()
+
+        logger.info("Pipeline execution completed.")
+
+        print_summary(results)
+
+        logger.info("HQFSF completed successfully.")
+
+        return 0
+
+    except KeyboardInterrupt:
+
+        logger.warning("Execution interrupted by user.")
+
+        print("\nExecution cancelled by user.")
+
+        return 1
+
+    except Exception as exc:
+
+        logger.exception("Unexpected error occurred.")
+
+        print("\n" + "=" * 70)
+        print("HQFSF EXECUTION FAILED")
+        print("=" * 70)
+
+        print(f"\nError: {exc}\n")
+
+        traceback.print_exc()
+
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

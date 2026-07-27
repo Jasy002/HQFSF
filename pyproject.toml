@@ -1,25 +1,187 @@
+# ==========================================================
+# HQFSF - Hybrid Quantum Feature Selection Framework
+# Modern Python Project Configuration
+# ==========================================================
+
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=75.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# ==========================================================
+# Project Information
+# ==========================================================
 
 [project]
 name = "hqfsf"
 version = "1.0.0"
+
 description = "Hybrid Quantum Feature Selection Framework Using Variational Quantum Circuits"
+
 readme = "README.md"
-requires-python = ">=3.11"
+
+requires-python = ">=3.10"
+
+license = { text = "MIT" }
 
 authors = [
-    {name = "Jasmine Sultana"}
+    { name = "Jasmine Sultana" }
 ]
-
-license = {text = "MIT"}
 
 keywords = [
-    "Quantum Computing",
-    "Machine Learning",
-    "Feature Selection",
-    "Qiskit",
-    "VQC",
-    "AI"
+    "quantum-computing",
+    "feature-selection",
+    "machine-learning",
+    "qiskit",
+    "variational-quantum-circuit",
+    "quantum-machine-learning",
+    "artificial-intelligence",
+    "research"
 ]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+dynamic = ["dependencies"]
+
+# ==========================================================
+# Project URLs
+# ==========================================================
+
+[project.urls]
+
+Homepage = "https://github.com/Jasy002/HQFSF"
+
+Repository = "https://github.com/Jasy002/HQFSF"
+
+Issues = "https://github.com/Jasy002/HQFSF/issues"
+
+Documentation = "https://github.com/Jasy002/HQFSF"
+
+# ==========================================================
+# Optional Dependencies
+# ==========================================================
+
+[project.optional-dependencies]
+
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "ruff",
+    "pre-commit"
+]
+
+docs = [
+    "mkdocs",
+    "mkdocs-material"
+]
+
+# ==========================================================
+# Setuptools
+# ==========================================================
+
+[tool.setuptools]
+
+include-package-data = true
+
+[tool.setuptools.packages.find]
+
+include = ["*"]
+
+exclude = [
+    "tests*",
+    "docs*",
+    "examples*"
+]
+
+[tool.setuptools.dynamic]
+
+dependencies = { file = ["requirements.txt"] }
+
+# ==========================================================
+# Black
+# ==========================================================
+
+[tool.black]
+
+line-length = 88
+
+target-version = ["py310"]
+
+skip-string-normalization = false
+
+# ==========================================================
+# isort
+# ==========================================================
+
+[tool.isort]
+
+profile = "black"
+
+line_length = 88
+
+multi_line_output = 3
+
+# ==========================================================
+# Ruff
+# ==========================================================
+
+[tool.ruff]
+
+line-length = 88
+
+target-version = "py310"
+
+[tool.ruff.lint]
+
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B"
+]
+
+# ==========================================================
+# Pytest
+# ==========================================================
+
+[tool.pytest.ini_options]
+
+testpaths = [
+    "tests"
+]
+
+python_files = [
+    "test_*.py"
+]
+
+addopts = "--cov=. --cov-report=term-missing"
+
+# ==========================================================
+# Coverage
+# ==========================================================
+
+[tool.coverage.run]
+
+source = ["."]
+omit = [
+    "tests/*"
+]
+
+[tool.coverage.report]
+
+show_missing = true
+
+skip_covered = false

@@ -1,46 +1,67 @@
 """
-Convergence Plot Visualization.
+==============================================================
+HQFSF Convergence Plot Visualization
 
-Visualizes optimization convergence over iterations.
+Hybrid Quantum Feature Selection Framework (HQFSF)
+
+Provides visualization of optimization convergence
+during quantum feature selection or model optimization.
+==============================================================
 """
 
 from __future__ import annotations
+
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 
 class ConvergencePlot:
     """
-    Plot optimization convergence.
+    Plot optimization convergence over iterations.
     """
-
-    def __init__(self):
-        pass
 
     def plot(
         self,
-        iterations: list,
-        objective_values: list,
+        iterations: list[int],
+        objective_values: list[float],
         title: str = "Optimization Convergence",
-        figsize: tuple = (10, 6),
-        save_path: str | None = None,
+        figsize: tuple[int, int] = (10, 6),
+        save_path: str |Path | None = None,
         show: bool = True,
     ) -> None:
         """
-        Plot convergence curve.
+        Plot optimization convergence.
 
         Parameters
         ----------
-        iterations : list
+        iterations : list[int]
             Optimization iteration numbers.
 
-        objective_values : list
-            Loss or objective function values.
+        objective_values : list[float]
+            Objective (loss/fitness) values.
+
+        title : str, optional
+            Plot title.
+
+        figsize : tuple[int, int], optional
+            Figure size.
+
+        save_path : str | Path | None, optional
+            Output image path.
+
+        show : bool, optional
+            Whether to display the figure.
         """
 
-        plt.figure(figsize=figsize)
+        if len(iterations) != len(objective_values):
+            raise ValueError(
+                "iterations and objective_values must have the same length."
+            )
 
-        plt.plot(
+        fig, ax = plt.subplots(figsize=figsize)
+
+        ax.plot(
             iterations,
             objective_values,
             linewidth=2,
@@ -48,21 +69,19 @@ class ConvergencePlot:
             markersize=5,
         )
 
-        plt.xlabel("Iteration")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Objective Value")
+        ax.set_title(title)
 
-        plt.ylabel("Objective Value")
-
-        plt.title(title)
-
-        plt.grid(
+        ax.grid(
             linestyle="--",
             alpha=0.5,
         )
 
-        plt.tight_layout()
+        fig.tight_layout()
 
         if save_path is not None:
-            plt.savefig(
+            fig.savefig(
                 save_path,
                 dpi=300,
                 bbox_inches="tight",
@@ -71,12 +90,16 @@ class ConvergencePlot:
         if show:
             plt.show()
 
-        plt.close()
+        plt.close(fig)
 
-    def summary(self):
+    @staticmethod
+    def summary() -> None:
+        """
+        Display a summary of the visualization.
+        """
 
         print("\n" + "=" * 60)
-        print(" Convergence Plot ")
+        print("Convergence Plot")
         print("=" * 60)
         print("Visualization : Line Chart")
         print("Purpose       : Optimization Progress")

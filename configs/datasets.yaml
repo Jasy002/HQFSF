@@ -1,26 +1,150 @@
-datasets:
+# ==========================================================
+# HQFSF Dataset Configuration
+# ==========================================================
 
-  breast_cancer:
-    path: datasets/raw/breast_cancer.csv
-    target_column: target
-    task: classification
+dataset:
 
-  diabetes:
-    path: datasets/raw/diabetes.csv
-    target_column: Outcome
-    task: classification
+  # Dataset name
+  name: "Breast Cancer Wisconsin Dataset"
 
-  heart:
-    path: datasets/raw/heart.csv
-    target_column: target
-    task: classification
+  # Dataset type
+  type: "csv"
 
-  wine:
-    path: datasets/raw/wine.csv
-    target_column: target
-    task: classification
+  # Dataset location
+  path: "./datasets/breast_cancer.csv"
 
-  sonar:
-    path: datasets/raw/sonar.csv
-    target_column: Class
-    task: classification
+  # Target column
+  target_column: "target"
+
+  # Task type
+  task: "classification"
+
+# ==========================================================
+# Dataset Split
+# ==========================================================
+
+split:
+
+  train_size: 0.80
+
+  test_size: 0.20
+
+  validation_size: 0.10
+
+  shuffle: true
+
+  random_state: 42
+
+  stratify: true
+
+# ==========================================================
+# Missing Values
+# ==========================================================
+
+missing_values:
+
+  enabled: true
+
+  strategy: "mean"
+
+# Available strategies:
+# mean
+# median
+# most_frequent
+# constant
+# drop
+
+# ==========================================================
+# Feature Scaling
+# ==========================================================
+
+scaling:
+
+  enabled: true
+
+  method: "standard"
+
+# Available methods:
+# standard
+# minmax
+# robust
+# normalize
+
+# ==========================================================
+# Encoding
+# ==========================================================
+
+encoding:
+
+  enabled: true
+
+  categorical: "label"
+
+# Available:
+# label
+# onehot
+# ordinal
+
+# ==========================================================
+# Feature Selection
+# ==========================================================
+
+feature_selection:
+
+  remove_constant_features: true
+
+  remove_duplicate_features: true
+
+  remove_correlated_features: false
+
+  correlation_threshold: 0.95
+
+# ==========================================================
+# Dataset Validation
+# ==========================================================
+
+validation:
+
+  check_missing_values: true
+
+  check_duplicates: true
+
+  check_datatypes: true
+
+  check_target_column: true
+
+# ==========================================================
+# Supported Datasets
+# ==========================================================
+
+supported_datasets:
+
+  - Breast Cancer Wisconsin
+
+  - Heart Disease
+
+  - Pima Indians Diabetes
+
+  - Parkinson Disease
+
+  - Wine Quality
+
+  - Iris
+
+  - Sonar
+
+  - MNIST
+
+# ==========================================================
+# Output
+# ==========================================================
+
+output:
+
+  save_processed_dataset: true
+
+  processed_dataset_path: "./outputs/processed_dataset.csv"
+
+# ==========================================================
+# End
+# ==========================================================

@@ -1,20 +1,23 @@
 """
-Machine Learning Models Package.
+Machine Learning Models for HQFSF.
 
-Provides classical classifiers for HQFSF.
+This package provides the classical classifiers used
+after quantum feature selection.
 """
 
-from .classifier import Classifier
-from .logistic import LogisticClassifier
-from .svm import SVMClassifier
-from .random_forest import RandomForestClassifier
+from .base_model import BaseModel
+from .random_forest import RandomForestModel
+from .svm import SVMModel
+from .logistic_regression import LogisticRegressionModel
+from .xgboost_model import XGBoostModel
 from .model_factory import ModelFactory
 
 __all__ = [
-    "Classifier",
-    "LogisticClassifier",
-    "SVMClassifier",
-    "RandomForestClassifier",
+    "BaseModel",
+    "RandomForestModel",
+    "SVMModel",
+    "LogisticRegressionModel",
+    "XGBoostModel",
     "ModelFactory",
 ]
 

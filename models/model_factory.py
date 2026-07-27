@@ -1,26 +1,52 @@
 """
-Model Factory.
+Model Factory for HQFSF.
 
-Creates machine learning classifiers used in the HQFSF framework.
+Provides a unified interface for creating
+machine learning models.
 """
 
-from models.logistic import LogisticClassifier
-from models.svm import SVMClassifier
+from __future__ import annotations
+
+from typing import Any
+
 from models.random_forest import RandomForestModel
+from models.svm import SVMModel
+from models.logistic_regression import LogisticRegressionModel
+from models.xgboost_model import XGBoostModel
 
 
 class ModelFactory:
     """
-    Factory class for creating classifiers.
+    Factory class for creating machine learning models.
     """
 
-    @staticmethod
+    _MODELS = {
+        "random_forest": RandomForestModel,
+        "rf": RandomForestModel,
+
+        "svm": SVMModel,
+        "svc": SVMModel,
+
+        "logistic_regression": LogisticRegressionModel,
+        "logistic": LogisticRegressionModel,
+        "lr": LogisticRegressionModel,
+
+        "xgboost": XGBoostModel,
+        "xgb": XGBoostModel,
+    }
+
+    # ----------------------------------------------------------
+    # Create Model
+    # ----------------------------------------------------------
+
+    @classmethod
     def create(
+        cls,
         model_name: str,
-        **kwargs
+        **kwargs: Any,
     ):
         """
-        Create and return a classifier.
+        Create a machine learning model.
 
         Parameters
         ----------
@@ -29,38 +55,54 @@ class ModelFactory:
 
         Returns
         -------
-        Classifier
-            Initialized classifier instance.
+        BaseModel
+            Initialized classifier.
         """
 
         model_name = model_name.lower()
 
-        if model_name in ["logistic", "logistic_regression"]:
-            return LogisticClassifier(**kwargs)
+        if model_name not in cls._MODELS:
 
-        elif model_name in ["svm", "svc"]:
-            return SVMClassifier(**kwargs)
+            supported = ", ".join(sorted(cls._MODELS.keys()))
 
-        elif model_name in [
-            "random_forest",
-            "rf",
-            "forest"
-        ]:
-            return RandomForestModel(**kwargs)
-
-        else:
             raise ValueError(
-                f"Unsupported model: {model_name}"
+                f"Unsupported model '{model_name}'. "
+                f"Supported models: {supported}"
             )
 
-    @staticmethod
-    def available_models():
+        return cls._MODELS[model_name](**kwargs)
+
+    # ----------------------------------------------------------
+    # Available Models
+    # ----------------------------------------------------------
+
+    @classmethod
+    def available_models(cls):
         """
-        Return all available models.
+        Return available model names.
         """
 
-        return [
-            "logistic",
-            "svm",
-            "random_forest",
-        ]
+        return sorted(cls._MODELS.keys())
+
+    # ----------------------------------------------------------
+    # Check Availability
+    # ----------------------------------------------------------
+
+    @classmethod
+    def exists(
+        cls,
+        model_name: str,
+    ) -> bool:
+
+        return model_name.lower() in cls._MODELS
+
+    # ----------------------------------------------------------
+    # Representation
+    # ----------------------------------------------------------
+
+    def __repr__(self):
+
+        return (
+            "ModelFactory("
+            f"available={self.available_models()})"
+        )

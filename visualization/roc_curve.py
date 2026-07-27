@@ -1,108 +1,137 @@
 """
-ROC Curve Visualization.
+==============================================================
+HQFSF ROC Curve Visualization
 
-Plots the Receiver Operating Characteristic (ROC)
-curve and computes the Area Under Curve (AUC).
+Hybrid Quantum Feature Selection Framework (HQFSF)
+
+Provides visualization of the Receiver Operating
+Characteristic (ROC) curve and computes the
+Area Under the Curve (AUC).
+==============================================================
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-
-from sklearn.metrics import roc_curve
-from sklearn.metrics import auc
+from sklearn.metrics import auc, roc_curve
 
 
 class ROCPlot:
     """
-    Visualize ROC Curve.
+    Visualize the ROC curve and compute AUC.
     """
-
-    def __init__(self):
-        pass
 
     def plot(
         self,
         y_true: np.ndarray,
         y_score: np.ndarray,
         title: str = "ROC Curve",
-        figsize: tuple = (8, 6),
-        save_path: str | None = None,
+        figsize: tuple[int, int] = (8, 6),
+        save_path: str | Path | None = None,
         show: bool = True,
     ) -> float:
         """
-        Plot ROC Curve.
+        Plot the Receiver Operating Characteristic (ROC) curve.
 
         Parameters
         ----------
-        y_true : ndarray
-            True labels.
+        y_true : np.ndarray
+            Ground truth labels.
 
-        y_score : ndarray
+        y_score : np.ndarray
             Prediction probabilities for the positive class.
+
+        title : str, optional
+            Plot title.
+
+        figsize : tuple[int, int], optional
+            Figure size.
+
+        save_path : str | Path | None, optional
+            Output image path.
+
+        show : bool, optional
+            Whether to display the figure.
 
         Returns
         -------
         float
-            Area Under Curve (AUC).
+            Area Under the Curve (AUC).
         """
+
+        y_true = np.asarray(y_true)
+        y_score = np.asarray(y_score)
+
+        if y_true.shape[0] != y_score.shape[0]:
+            raise ValueError(
+                "y_true and y_score must have the same number of samples."
+            )
 
         fpr, tpr, _ = roc_curve(
             y_true,
-            y_score
+            y_score,
         )
 
         roc_auc = auc(
             fpr,
-            tpr
+            tpr,
         )
 
-        plt.figure(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize)
 
-        plt.plot(
+        ax.plot(
             fpr,
             tpr,
             linewidth=2,
-            label=f"AUC = {roc_auc:.4f}"
+            label=f"AUC = {roc_auc:.4f}",
         )
 
-        plt.plot(
+        ax.plot(
             [0, 1],
             [0, 1],
-            linestyle="--"
+            linestyle="--",
+            linewidth=1.5,
+            label="Random Classifier",
         )
 
-        plt.xlabel("False Positive Rate")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title(title)
 
-        plt.ylabel("True Positive Rate")
+        ax.legend(loc="lower right")
 
-        plt.title(title)
+        ax.grid(
+            linestyle="--",
+            alpha=0.5,
+        )
 
-        plt.legend(loc="lower right")
-
-        plt.grid(True)
-
-        plt.tight_layout()
+        fig.tight_layout()
 
         if save_path is not None:
-            plt.savefig(
+            fig.savefig(
                 save_path,
                 dpi=300,
-                bbox_inches="tight"
+                bbox_inches="tight",
             )
 
         if show:
             plt.show()
 
-        plt.close()
+        plt.close(fig)
 
         return roc_auc
 
-    def summary(self):
+    @staticmethod
+    def summary() -> None:
+        """
+        Display a summary of the visualization.
+        """
 
         print("\n" + "=" * 60)
-        print(" ROC Curve ")
+        print("ROC Curve")
         print("=" * 60)
         print("Visualization : ROC Curve")
         print("Metric        : Area Under Curve (AUC)")
