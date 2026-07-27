@@ -1,115 +1,279 @@
 """
-Preprocessing module for HQFSF.
+Data Preprocessing Module for HQFSF.
 
-Performs data cleaning and preprocessing before
-feature scaling and quantum encoding.
+Performs:
+    - Column name normalization
+    - Duplicate removal
+    - Missing value imputation
+    - Label encoding
+    - Complete preprocessing pipeline
 """
+
+from __future__ import annotations
+
+from typing import Optional
 
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder
 
-from utils.logger import setup_logger
+from utils.logger import get_logger
 
-logger = setup_logger()
+logger = get_logger(__name__)
 
 
 class DataPreprocessor:
     """
-    Performs dataset preprocessing.
+    Data Preprocessor for HQFSF.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        Input dataset.
+
+    Notes
+    -----
+    This class performs preprocessing before feature scaling
+    and quantum feature encoding.
     """
 
-    def __init__(self, dataframe: pd.DataFrame):
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+    ) -> None:
+
+        if not isinstance(dataframe, pd.DataFrame):
+            raise TypeError(
+                "dataframe must be a pandas DataFrame."
+            )
+
+        if dataframe.empty:
+            raise ValueError(
+                "Input dataframe is empty."
+            )
+
         self.df = dataframe.copy()
 
-    def normalize_column_names(self):
+        logger.info(
+            "DataPreprocessor initialized | "
+            "Rows=%d | Columns=%d",
+            self.df.shape[0],
+            self.df.shape[1],
+        )
+
+    # ---------------------------------------------------------
+    # Column Names
+    # ---------------------------------------------------------
+
+    def normalize_column_names(self) -> "DataPreprocessor":
         """
         Normalize column names.
+
+        Returns
+        -------
+        DataPreprocessor
         """
 
         self.df.columns = (
             self.df.columns
             .str.strip()
             .str.lower()
-            .str.replace(" ", "_")
+            .str.replace(" ", "_", regex=False)
+            .str.replace("-", "_", regex=False)
         )
 
-        logger.info("Column names normalized.")
+        logger.info(
+            "Column names normalized."
+        )
 
-    def remove_duplicates(self):
+        return self
+
+    # ---------------------------------------------------------
+    # Duplicate Removal
+    # ---------------------------------------------------------
+
+    def remove_duplicates(self) -> "DataPreprocessor":
         """
         Remove duplicate rows.
+
+        Returns
+        -------
+        DataPreprocessor
         """
 
         before = len(self.df)
 
-        self.df.drop_duplicates(inplace=True)
-
-        after = len(self.df)
-
-        logger.info(
-            f"Removed {before-after} duplicate rows."
+        self.df.drop_duplicates(
+            inplace=True
         )
 
-    def handle_missing_values(self):
+        removed = before - len(self.df)
+
+        logger.info(
+            "%d duplicate rows removed.",
+            removed,
+        )
+
+        return self
+
+    # ---------------------------------------------------------
+    # Missing Values
+    # ---------------------------------------------------------
+
+    def handle_missing_values(
+        self,
+        numeric_strategy: str = "mean",
+        categorical_strategy: str = "most_frequent",
+    ) -> "DataPreprocessor":
         """
         Fill missing values.
+
+        Parameters
+        ----------
+        numeric_strategy : str
+            Strategy for numeric columns.
+
+        categorical_strategy : str
+            Strategy for categorical columns.
         """
 
-        numeric = self.df.select_dtypes(include=["number"]).columns
+        numeric_columns = self.df.select_dtypes(
+            include=["number"]
+        ).columns
 
-        categorical = self.df.select_dtypes(exclude=["number"]).columns
-
-        if len(numeric) > 0:
-
-            num_imputer = SimpleImputer(strategy="mean")
-
-            self.df[numeric] = num_imputer.fit_transform(
-                self.df[numeric]
-            )
-
-        if len(categorical) > 0:
-
-            cat_imputer = SimpleImputer(strategy="most_frequent")
-
-            self.df[categorical] = cat_imputer.fit_transform(
-                self.df[categorical]
-            )
-
-        logger.info("Missing values handled.")
-
-    def encode_labels(self):
-        """
-        Encode categorical columns.
-        """
-
-        encoder = LabelEncoder()
-
-        categorical = self.df.select_dtypes(
+        categorical_columns = self.df.select_dtypes(
             exclude=["number"]
         ).columns
 
-        for column in categorical:
+        if len(numeric_columns):
 
-            self.df[column] = encoder.fit_transform(
-                self.df[column]
+            numeric_imputer = SimpleImputer(
+                strategy=numeric_strategy
             )
 
-        logger.info("Categorical features encoded.")
+            self.df[numeric_columns] = (
+                numeric_imputer.fit_transform(
+                    self.df[numeric_columns]
+                )
+            )
 
-    def preprocess(self):
+        if len(categorical_columns):
+
+            categorical_imputer = SimpleImputer(
+                strategy=categorical_strategy
+            )
+
+            self.df[categorical_columns] = (
+                categorical_imputer.fit_transform(
+                    self.df[categorical_columns]
+                )
+            )
+
+        logger.info(
+            "Missing values handled."
+        )
+
+        return self
+
+    # ---------------------------------------------------------
+    # Label Encoding
+    # ---------------------------------------------------------
+
+    def encode_labels(self) -> "DataPreprocessor":
         """
-        Complete preprocessing pipeline.
+        Encode categorical columns.
+
+        Returns
+        -------
+        DataPreprocessor
         """
 
-        self.normalize_column_names()
+        categorical_columns = self.df.select_dtypes(
+            exclude=["number"]
+        ).columns
 
-        self.remove_duplicates()
+        for column in categorical_columns:
 
-        self.handle_missing_values()
+            encoder = LabelEncoder()
 
-        self.encode_labels()
+            self.df[column] = encoder.fit_transform(
+                self.df[column].astype(str)
+            )
 
-        logger.info("Preprocessing completed.")
+        logger.info(
+            "Categorical columns encoded."
+        )
+
+        return self
+
+    # ---------------------------------------------------------
+    # Pipeline
+    # ---------------------------------------------------------
+
+    def preprocess(self) -> pd.DataFrame:
+        """
+        Execute complete preprocessing pipeline.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+
+        (
+            self.normalize_column_names()
+                .remove_duplicates()
+                .handle_missing_values()
+                .encode_labels()
+        )
+
+        logger.info(
+            "Preprocessing completed successfully."
+        )
 
         return self.df
+
+    # ---------------------------------------------------------
+    # Access
+    # ---------------------------------------------------------
+
+    def get_dataframe(self) -> pd.DataFrame:
+        """
+        Return processed dataframe.
+        """
+
+        return self.df.copy()
+
+    # ---------------------------------------------------------
+    # Information
+    # ---------------------------------------------------------
+
+    def summary(self) -> None:
+        """
+        Print preprocessing summary.
+        """
+
+        print("\n" + "=" * 60)
+        print("DATA PREPROCESSOR SUMMARY")
+        print("=" * 60)
+
+        print(f"Rows    : {self.df.shape[0]}")
+        print(f"Columns : {self.df.shape[1]}")
+
+        print("\nColumn Names")
+
+        for column in self.df.columns:
+            print(f"  • {column}")
+
+        print("=" * 60)
+
+    # ---------------------------------------------------------
+    # Representation
+    # ---------------------------------------------------------
+
+    def __repr__(self) -> str:
+
+        return (
+            f"DataPreprocessor("
+            f"rows={self.df.shape[0]}, "
+            f"columns={self.df.shape[1]})"
+        )

@@ -1,100 +1,285 @@
 """
-Validation module for HQFSF.
+Data Validation Module for HQFSF.
 
-Performs dataset validation before preprocessing.
+Performs:
+    - Dataset validation
+    - Target validation
+    - Missing value analysis
+    - Duplicate detection
+    - Data type inspection
+    - Dataset statistics
 """
 
-from typing import Dict
+from __future__ import annotations
+
+from typing import Dict, List
 
 import pandas as pd
 
 from utils.exceptions import DatasetError
-from utils.logger import setup_logger
+from utils.logger import get_logger
 
-logger = setup_logger()
+logger = get_logger(__name__)
 
 
 class DataValidator:
     """
-    Performs validation checks on datasets.
+    Dataset validation utility.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        Input dataset.
     """
 
-    def __init__(self, dataframe: pd.DataFrame):
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+    ) -> None:
+
+        if not isinstance(dataframe, pd.DataFrame):
+            raise TypeError(
+                "dataframe must be a pandas DataFrame."
+            )
+
         self.df = dataframe.copy()
 
+        logger.info(
+            "DataValidator initialized | "
+            "Rows=%d | Columns=%d",
+            self.df.shape[0],
+            self.df.shape[1],
+        )
+
+    # ---------------------------------------------------------
+    # Dataset Checks
+    # ---------------------------------------------------------
+
     def check_empty(self) -> None:
-        """Check whether dataset is empty."""
+        """
+        Verify dataset is not empty.
+        """
 
         if self.df.empty:
-            raise DatasetError("Dataset is empty.")
+            raise DatasetError(
+                "Dataset is empty."
+            )
 
-        logger.info("Dataset is not empty.")
+        logger.info(
+            "Dataset is not empty."
+        )
 
-    def check_target(self, target_column: str) -> None:
-        """Verify target column exists."""
+    def check_target(
+        self,
+        target_column: str,
+    ) -> None:
+        """
+        Verify target column exists.
+        """
 
         if target_column not in self.df.columns:
+
             raise DatasetError(
                 f"Target column '{target_column}' not found."
             )
 
-        logger.info("Target column validated.")
+        logger.info(
+            "Target column validated."
+        )
 
-    def missing_values(self) -> Dict:
-        """Return missing value statistics."""
+    # ---------------------------------------------------------
+    # Missing Values
+    # ---------------------------------------------------------
 
-        missing = self.df.isnull().sum()
+    def missing_values(self) -> Dict[str, int]:
+        """
+        Return missing value statistics.
+        """
 
-        logger.info("Missing value analysis completed.")
+        missing = (
+            self.df
+            .isnull()
+            .sum()
+            .to_dict()
+        )
 
-        return missing.to_dict()
+        logger.info(
+            "Missing value analysis completed."
+        )
+
+        return missing
+
+    # ---------------------------------------------------------
+    # Duplicate Rows
+    # ---------------------------------------------------------
 
     def duplicate_rows(self) -> int:
-        """Count duplicate rows."""
+        """
+        Count duplicate rows.
+        """
 
-        duplicates = self.df.duplicated().sum()
+        duplicates = int(
+            self.df.duplicated().sum()
+        )
 
-        logger.info(f"Duplicate rows: {duplicates}")
+        logger.info(
+            "Duplicate rows: %d",
+            duplicates,
+        )
 
         return duplicates
 
-    def numeric_columns(self):
-        """Return numeric feature names."""
+    # ---------------------------------------------------------
+    # Column Information
+    # ---------------------------------------------------------
 
-        return self.df.select_dtypes(include=["number"]).columns.tolist()
-
-    def categorical_columns(self):
-        """Return categorical feature names."""
+    def numeric_columns(self) -> List[str]:
+        """
+        Return numeric column names.
+        """
 
         return self.df.select_dtypes(
-            exclude=["number"]
+            include="number"
         ).columns.tolist()
 
-    def validation_report(self, target_column: str) -> Dict:
+    def categorical_columns(self) -> List[str]:
         """
-        Generate validation report.
+        Return categorical column names.
         """
+
+        return self.df.select_dtypes(
+            exclude="number"
+        ).columns.tolist()
+
+    def data_types(self) -> Dict[str, str]:
+        """
+        Return data types.
+        """
+
+        return {
+            column: str(dtype)
+            for column, dtype in self.df.dtypes.items()
+        }
+
+    # ---------------------------------------------------------
+    # Dataset Statistics
+    # ---------------------------------------------------------
+
+    def dataset_shape(self) -> tuple[int, int]:
+        """
+        Return dataset shape.
+        """
+
+        return self.df.shape
+
+    def memory_usage(self) -> float:
+        """
+        Return dataset memory usage in MB.
+        """
+
+        memory = (
+            self.df.memory_usage(
+                deep=True
+            ).sum()
+            / (1024 ** 2)
+        )
+
+        return round(memory, 3)
+
+    # ---------------------------------------------------------
+    # Validation Report
+    # ---------------------------------------------------------
+
+    def validation_report(
+        self,
+        target_column: str,
+    ) -> Dict:
 
         self.check_empty()
 
-        self.check_target(target_column)
+        self.check_target(
+            target_column
+        )
 
         report = {
 
-            "Rows": self.df.shape[0],
+            "rows":
+                self.df.shape[0],
 
-            "Columns": self.df.shape[1],
+            "columns":
+                self.df.shape[1],
 
-            "Missing Values": self.missing_values(),
+            "memory_mb":
+                self.memory_usage(),
 
-            "Duplicate Rows": self.duplicate_rows(),
+            "missing_values":
+                self.missing_values(),
 
-            "Numeric Columns": self.numeric_columns(),
+            "duplicate_rows":
+                self.duplicate_rows(),
 
-            "Categorical Columns": self.categorical_columns()
+            "numeric_columns":
+                self.numeric_columns(),
+
+            "categorical_columns":
+                self.categorical_columns(),
+
+            "data_types":
+                self.data_types(),
 
         }
 
-        logger.info("Validation completed successfully.")
+        logger.info(
+            "Validation report generated."
+        )
 
         return report
+
+    # ---------------------------------------------------------
+    # Summary
+    # ---------------------------------------------------------
+
+    def summary(
+        self,
+        target_column: str,
+    ) -> None:
+        """
+        Print validation summary.
+        """
+
+        report = self.validation_report(
+            target_column
+        )
+
+        print("\n" + "=" * 60)
+        print("DATA VALIDATION SUMMARY")
+        print("=" * 60)
+
+        print(f"Rows          : {report['rows']}")
+        print(f"Columns       : {report['columns']}")
+        print(f"Memory (MB)   : {report['memory_mb']:.3f}")
+        print(f"Duplicates    : {report['duplicate_rows']}")
+
+        print("\nNumeric Columns")
+
+        for column in report["numeric_columns"]:
+            print(f"  • {column}")
+
+        print("\nCategorical Columns")
+
+        for column in report["categorical_columns"]:
+            print(f"  • {column}")
+
+        print("=" * 60)
+
+    # ---------------------------------------------------------
+    # Representation
+    # ---------------------------------------------------------
+
+    def __repr__(self) -> str:
+
+        return (
+            f"DataValidator("
+            f"rows={self.df.shape[0]}, "
+            f"columns={self.df.shape[1]})"
+        )
