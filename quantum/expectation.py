@@ -1,13 +1,17 @@
 """
 Expectation Value Module for HQFSF.
 
-Responsible for:
-    - Computing expectation values
-    - Computing probabilities
-    - Returning expectation vectors
+Responsible for
+
+    - Computing Pauli-Z expectation values
+    - Computing probability distributions
+    - Computing expectation vectors
+    - Supporting multiple quantum circuits
 """
 
 from __future__ import annotations
+
+from typing import Dict, List
 
 import numpy as np
 
@@ -19,16 +23,47 @@ logger = get_logger(__name__)
 class ExpectationCalculator:
     """
     Expectation Value Calculator.
+
+    Computes expectation values from measurement counts
+    obtained after executing quantum circuits.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+
         logger.info(
-            "Expectation Calculator initialized."
+            "ExpectationCalculator initialized."
         )
+
+    # ---------------------------------------------------------
+    # Validation
+    # ---------------------------------------------------------
+
+    @staticmethod
+    def _validate_inputs(
+        counts: Dict[str, int],
+        shots: int,
+    ) -> None:
+        """
+        Validate measurement counts.
+        """
+
+        if shots <= 0:
+            raise ValueError(
+                "shots must be greater than zero."
+            )
+
+        if not counts:
+            raise ValueError(
+                "counts dictionary is empty."
+            )
+
+    # ---------------------------------------------------------
+    # Expectation Value
+    # ---------------------------------------------------------
 
     def expectation_z(
         self,
-        counts: dict,
+        counts: Dict[str, int],
         shots: int,
     ) -> float:
         """
@@ -40,23 +75,24 @@ class ExpectationCalculator:
             Measurement counts.
 
         shots : int
-            Number of shots.
+            Number of executed shots.
 
         Returns
         -------
         float
+            Pauli-Z expectation value.
         """
+
+        self._validate_inputs(
+            counts,
+            shots,
+        )
 
         expectation = 0.0
 
         for bitstring, frequency in counts.items():
 
-            parity = 1
-
-            for bit in bitstring:
-
-                if bit == "1":
-                    parity *= -1
+            parity = (-1) ** bitstring.count("1")
 
             expectation += parity * frequency
 
@@ -68,14 +104,54 @@ class ExpectationCalculator:
 
         return expectation
 
+    # ---------------------------------------------------------
+    # Single-Qubit Expectation
+    # ---------------------------------------------------------
+
+    def expectation_qubit(
+        self,
+        counts: Dict[str, int],
+        shots: int,
+        qubit: int,
+    ) -> float:
+        """
+        Compute expectation value of a single qubit.
+        """
+
+        self._validate_inputs(
+            counts,
+            shots,
+        )
+
+        expectation = 0.0
+
+        for bitstring, frequency in counts.items():
+
+            bit = bitstring[::-1][qubit]
+
+            value = 1 if bit == "0" else -1
+
+            expectation += value * frequency
+
+        return expectation / shots
+
+    # ---------------------------------------------------------
+    # Probability Distribution
+    # ---------------------------------------------------------
+
     def probability_distribution(
         self,
-        counts: dict,
+        counts: Dict[str, int],
         shots: int,
-    ) -> dict:
+    ) -> Dict[str, float]:
         """
         Convert counts into probabilities.
         """
+
+        self._validate_inputs(
+            counts,
+            shots,
+        )
 
         probabilities = {
             state: value / shots
@@ -88,51 +164,61 @@ class ExpectationCalculator:
 
         return probabilities
 
+    # ---------------------------------------------------------
+    # Expectation Vector
+    # ---------------------------------------------------------
+
     def expectation_vector(
         self,
-        counts_list: list,
+        counts_list: List[Dict[str, int]],
         shots: int,
     ) -> np.ndarray:
         """
         Compute expectation values for multiple circuits.
-
-        Parameters
-        ----------
-        counts_list : list
-            List of count dictionaries.
-
-        shots : int
-
-        Returns
-        -------
-        numpy.ndarray
         """
 
-        values = []
+        values = [
 
-        for counts in counts_list:
-
-            values.append(
-                self.expectation_z(
-                    counts,
-                    shots,
-                )
+            self.expectation_z(
+                counts,
+                shots,
             )
+
+            for counts in counts_list
+
+        ]
 
         logger.info(
             "Expectation vector computed."
         )
 
-        return np.array(values)
+        return np.asarray(
+            values,
+            dtype=float,
+        )
 
-    def summary(self):
-        """
-        Display module information.
-        """
+    # ---------------------------------------------------------
+    # Summary
+    # ---------------------------------------------------------
 
-        print("\n========== Expectation Calculator ==========")
+    def summary(self) -> None:
 
-        print("Operator : Pauli-Z")
-        print("Output   : Expectation Value(s)")
+        print("\n" + "=" * 55)
+        print("EXPECTATION CALCULATOR SUMMARY")
+        print("=" * 55)
 
-        print("============================================\n")
+        print("Observable : Pauli-Z")
+        print("Outputs    :")
+        print("   • Expectation value")
+        print("   • Expectation vector")
+        print("   • Probability distribution")
+
+        print("=" * 55)
+
+    # ---------------------------------------------------------
+    # Representation
+    # ---------------------------------------------------------
+
+    def __repr__(self) -> str:
+
+        return "ExpectationCalculator()"

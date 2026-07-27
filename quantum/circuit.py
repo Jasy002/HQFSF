@@ -24,7 +24,22 @@ logger = get_logger(__name__)
 
 class HQFSFCircuit:
     """
-    HQFSF Variational Quantum Circuit.
+    Hybrid Quantum Feature Selection Framework (HQFSF)
+    Variational Quantum Circuit Builder.
+
+    Parameters
+    ----------
+    n_qubits : int
+        Number of qubits.
+
+    layers : int, default=2
+        Number of variational layers.
+
+    encoding : str, default="ry"
+        Feature encoding method.
+
+    entanglement : str, default="linear"
+        Entanglement topology.
     """
 
     def __init__(
@@ -33,34 +48,50 @@ class HQFSFCircuit:
         layers: int = 2,
         encoding: str = "ry",
         entanglement: str = "linear",
-    ):
+    ) -> None:
+
+        if n_qubits <= 0:
+            raise ValueError(
+                "Number of qubits must be greater than zero."
+            )
+
+        if layers <= 0:
+            raise ValueError(
+                "Number of layers must be greater than zero."
+            )
 
         self.n_qubits = n_qubits
         self.layers = layers
-        self.encoding = encoding
-        self.entanglement = entanglement
+        self.encoding = encoding.lower()
+        self.entanglement = entanglement.lower()
 
         self.encoder = QuantumEncoder(
-            n_qubits=n_qubits
+            n_qubits=self.n_qubits,
         )
 
         self.ansatz = VariationalAnsatz(
-            n_qubits=n_qubits,
-            layers=layers,
-            entanglement=entanglement,
+            n_qubits=self.n_qubits,
+            layers=self.layers,
+            entanglement=self.entanglement,
         )
 
         logger.info(
-            "HQFSF Circuit initialized (%d qubits).",
-            n_qubits,
+            "HQFSF Circuit initialized | "
+            "Qubits=%d | Layers=%d",
+            self.n_qubits,
+            self.layers,
         )
+
+    # ---------------------------------------------------------
+    # Build Circuit
+    # ---------------------------------------------------------
 
     def build(
         self,
         features: np.ndarray,
     ) -> QuantumCircuit:
         """
-        Build the complete quantum circuit.
+        Build the complete variational quantum circuit.
 
         Parameters
         ----------
@@ -72,6 +103,12 @@ class HQFSFCircuit:
         QuantumCircuit
         """
 
+        if len(features) != self.n_qubits:
+            raise ValueError(
+                f"Expected {self.n_qubits} features "
+                f"but received {len(features)}."
+            )
+
         encoder_circuit = self.encoder.encode(
             features,
             encoding_method=self.encoding,
@@ -79,41 +116,51 @@ class HQFSFCircuit:
 
         ansatz_circuit = self.ansatz.build()
 
-        full_circuit = QuantumCircuit(self.n_qubits)
+        circuit = QuantumCircuit(self.n_qubits)
 
-        full_circuit.compose(
+        circuit.compose(
             encoder_circuit,
             inplace=True,
         )
 
-        full_circuit.barrier()
+        circuit.barrier()
 
-        full_circuit.compose(
+        circuit.compose(
             ansatz_circuit,
             inplace=True,
         )
 
         logger.info(
-            "Complete HQFSF circuit constructed."
+            "HQFSF variational circuit constructed successfully."
         )
 
-        return full_circuit
+        return circuit
+
+    # ---------------------------------------------------------
+    # Measurement
+    # ---------------------------------------------------------
 
     def measure(
         self,
         circuit: QuantumCircuit,
     ) -> QuantumCircuit:
         """
-        Add measurements.
+        Return a measured copy of the circuit.
         """
 
-        circuit.measure_all()
+        measured = circuit.copy()
+
+        measured.measure_all()
 
         logger.info(
-            "Measurements added."
+            "Measurements added to circuit."
         )
 
-        return circuit
+        return measured
+
+    # ---------------------------------------------------------
+    # Visualization
+    # ---------------------------------------------------------
 
     @staticmethod
     def draw(
@@ -121,7 +168,52 @@ class HQFSFCircuit:
         output: str = "text",
     ):
         """
-        Draw the quantum circuit.
+        Draw the circuit.
+
+        Parameters
+        ----------
+        circuit : QuantumCircuit
+
+        output : str
+            text, mpl, latex
+
+        Returns
+        -------
+        Circuit drawing.
         """
 
         return circuit.draw(output=output)
+
+    # ---------------------------------------------------------
+    # Information
+    # ---------------------------------------------------------
+
+    def summary(self) -> None:
+        """
+        Print circuit configuration.
+        """
+
+        print("\n" + "=" * 55)
+        print("HQFSF CIRCUIT SUMMARY")
+        print("=" * 55)
+
+        print(f"Qubits         : {self.n_qubits}")
+        print(f"Layers         : {self.layers}")
+        print(f"Encoding       : {self.encoding}")
+        print(f"Entanglement   : {self.entanglement}")
+
+        print("=" * 55)
+
+    # ---------------------------------------------------------
+    # Representation
+    # ---------------------------------------------------------
+
+    def __repr__(self) -> str:
+
+        return (
+            f"HQFSFCircuit("
+            f"n_qubits={self.n_qubits}, "
+            f"layers={self.layers}, "
+            f"encoding='{self.encoding}', "
+            f"entanglement='{self.entanglement}')"
+        )

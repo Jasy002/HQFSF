@@ -32,6 +32,7 @@ class VariationalAnsatz:
 
     entanglement : str, default="linear"
         Entanglement topology.
+
         Supported:
             - linear
             - circular
@@ -47,11 +48,21 @@ class VariationalAnsatz:
         n_qubits: int,
         layers: int = 2,
         entanglement: str = "linear",
-    ):
+    ) -> None:
+
+        if not isinstance(n_qubits, int):
+            raise TypeError(
+                "n_qubits must be an integer."
+            )
 
         if n_qubits <= 0:
             raise ValueError(
                 "Number of qubits must be greater than zero."
+            )
+
+        if not isinstance(layers, int):
+            raise TypeError(
+                "layers must be an integer."
             )
 
         if layers <= 0:
@@ -74,21 +85,29 @@ class VariationalAnsatz:
             length=self.n_qubits * self.layers,
         )
 
+        logger.info(
+            "Initialized VariationalAnsatz | "
+            "Qubits=%d | Layers=%d | Entanglement=%s",
+            self.n_qubits,
+            self.layers,
+            self.entanglement.upper(),
+        )
+
     @property
-    def trainable_parameters(self):
+    def trainable_parameters(self) -> ParameterVector:
         """
-        Returns the trainable parameters.
+        Return the trainable parameters.
         """
         return self.parameters
 
     def build(self) -> QuantumCircuit:
         """
-        Build the variational ansatz circuit.
+        Build the parameterized variational quantum circuit.
 
         Returns
         -------
         QuantumCircuit
-            Parameterized variational circuit.
+            Parameterized quantum circuit.
         """
 
         qc = QuantumCircuit(self.n_qubits)
@@ -97,9 +116,9 @@ class VariationalAnsatz:
 
         for layer in range(self.layers):
 
-            # -----------------------------------
-            # Parameterized Rotation Layer
-            # -----------------------------------
+            # ---------------------------------------
+            # Rotation Layer
+            # ---------------------------------------
 
             for qubit in range(self.n_qubits):
 
@@ -110,9 +129,9 @@ class VariationalAnsatz:
 
                 parameter_index += 1
 
-            # -----------------------------------
+            # ---------------------------------------
             # Entanglement Layer
-            # -----------------------------------
+            # ---------------------------------------
 
             if self.entanglement == "linear":
 
@@ -140,25 +159,48 @@ class VariationalAnsatz:
             qc.barrier()
 
         logger.info(
-            "Variational Ansatz built | "
-            "Qubits=%d | Layers=%d | Entanglement=%s",
-            self.n_qubits,
-            self.layers,
-            self.entanglement.upper(),
+            "Variational ansatz built successfully."
         )
 
         return qc
 
-    def summary(self):
+    def draw(self, output: str = "mpl"):
         """
-        Print ansatz information.
+        Draw the quantum circuit.
+
+        Parameters
+        ----------
+        output : str, default="mpl"
+
+        Returns
+        -------
+        Circuit drawing.
         """
 
-        print("\n========== Ansatz Summary ==========")
+        circuit = self.build()
 
-        print(f"Qubits         : {self.n_qubits}")
-        print(f"Layers         : {self.layers}")
-        print(f"Entanglement   : {self.entanglement}")
-        print(f"Parameters     : {len(self.parameters)}")
+        return circuit.draw(output=output)
 
-        print("====================================\n")
+    def summary(self) -> None:
+        """
+        Print ansatz configuration.
+        """
+
+        print("\n" + "=" * 50)
+        print("VARIATIONAL ANSATZ SUMMARY")
+        print("=" * 50)
+
+        print(f"Qubits               : {self.n_qubits}")
+        print(f"Layers               : {self.layers}")
+        print(f"Entanglement         : {self.entanglement}")
+        print(f"Trainable Parameters : {len(self.parameters)}")
+
+        print("=" * 50)
+
+    def __repr__(self) -> str:
+        return (
+            f"VariationalAnsatz("
+            f"n_qubits={self.n_qubits}, "
+            f"layers={self.layers}, "
+            f"entanglement='{self.entanglement}')"
+        )

@@ -1,22 +1,33 @@
 """
 Evaluation Metrics for HQFSF.
 
-Responsible for:
+Responsible for
+
     - Classification Metrics
     - Feature Selection Statistics
     - Confusion Matrix
+    - Classification Report
+    - ROC-AUC
+    - Balanced Accuracy
+    - Matthews Correlation Coefficient (MCC)
 """
 
 from __future__ import annotations
+
+from typing import Any, Dict
 
 import numpy as np
 
 from sklearn.metrics import (
     accuracy_score,
+    balanced_accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    matthews_corrcoef,
     precision_score,
     recall_score,
-    f1_score,
-    confusion_matrix,
+    roc_auc_score,
 )
 
 from utils.logger import get_logger
@@ -29,11 +40,15 @@ class QuantumMetrics:
     Evaluation metrics for HQFSF.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         logger.info(
             "QuantumMetrics initialized."
         )
+
+    # ---------------------------------------------------------
+    # Classification Metrics
+    # ---------------------------------------------------------
 
     def accuracy(
         self,
@@ -47,7 +62,7 @@ class QuantumMetrics:
         )
 
         logger.info(
-            "Accuracy: %.4f",
+            "Accuracy = %.4f",
             score,
         )
 
@@ -57,7 +72,7 @@ class QuantumMetrics:
         self,
         y_true,
         y_pred,
-        average="binary",
+        average: str = "binary",
     ) -> float:
 
         score = precision_score(
@@ -67,60 +82,86 @@ class QuantumMetrics:
             zero_division=0,
         )
 
-        logger.info(
-            "Precision: %.4f",
-            score,
-        )
-
         return score
 
     def recall(
         self,
         y_true,
         y_pred,
-        average="binary",
+        average: str = "binary",
     ) -> float:
 
-        score = recall_score(
+        return recall_score(
             y_true,
             y_pred,
             average=average,
             zero_division=0,
         )
-
-        logger.info(
-            "Recall: %.4f",
-            score,
-        )
-
-        return score
 
     def f1(
         self,
         y_true,
         y_pred,
-        average="binary",
+        average: str = "binary",
     ) -> float:
 
-        score = f1_score(
+        return f1_score(
             y_true,
             y_pred,
             average=average,
             zero_division=0,
         )
 
-        logger.info(
-            "F1 Score: %.4f",
-            score,
+    def balanced_accuracy(
+        self,
+        y_true,
+        y_pred,
+    ) -> float:
+
+        return balanced_accuracy_score(
+            y_true,
+            y_pred,
         )
 
-        return score
+    def mcc(
+        self,
+        y_true,
+        y_pred,
+    ) -> float:
+
+        return matthews_corrcoef(
+            y_true,
+            y_pred,
+        )
+
+    def roc_auc(
+        self,
+        y_true,
+        y_score,
+    ) -> float:
+        """
+        ROC-AUC score.
+
+        Parameters
+        ----------
+        y_score : array-like
+            Prediction probabilities.
+        """
+
+        return roc_auc_score(
+            y_true,
+            y_score,
+        )
+
+    # ---------------------------------------------------------
+    # Confusion Matrix
+    # ---------------------------------------------------------
 
     def confusion(
         self,
         y_true,
         y_pred,
-    ):
+    ) -> np.ndarray:
 
         matrix = confusion_matrix(
             y_true,
@@ -133,58 +174,147 @@ class QuantumMetrics:
 
         return matrix
 
+    # ---------------------------------------------------------
+    # Classification Report
+    # ---------------------------------------------------------
+
+    def report(
+        self,
+        y_true,
+        y_pred,
+    ) -> Dict[str, Any]:
+
+        return classification_report(
+            y_true,
+            y_pred,
+            output_dict=True,
+            zero_division=0,
+        )
+
+    # ---------------------------------------------------------
+    # Feature Reduction
+    # ---------------------------------------------------------
+
     def feature_reduction(
         self,
         original_features: int,
         selected_features: int,
     ) -> float:
 
+        if original_features <= 0:
+
+            raise ValueError(
+                "original_features must be greater than zero."
+            )
+
         reduction = (
-            (original_features - selected_features)
+            (
+                original_features
+                - selected_features
+            )
             / original_features
         ) * 100
 
         logger.info(
-            "Feature Reduction: %.2f%%",
+            "Feature reduction = %.2f%%",
             reduction,
         )
 
         return reduction
 
+    # ---------------------------------------------------------
+    # All Metrics
+    # ---------------------------------------------------------
+
+    def evaluate(
+        self,
+        y_true,
+        y_pred,
+        original_features: int,
+        selected_features: int,
+    ) -> Dict[str, float]:
+
+        return {
+
+            "accuracy":
+                self.accuracy(
+                    y_true,
+                    y_pred,
+                ),
+
+            "precision":
+                self.precision(
+                    y_true,
+                    y_pred,
+                ),
+
+            "recall":
+                self.recall(
+                    y_true,
+                    y_pred,
+                ),
+
+            "f1":
+                self.f1(
+                    y_true,
+                    y_pred,
+                ),
+
+            "balanced_accuracy":
+                self.balanced_accuracy(
+                    y_true,
+                    y_pred,
+                ),
+
+            "mcc":
+                self.mcc(
+                    y_true,
+                    y_pred,
+                ),
+
+            "feature_reduction":
+                self.feature_reduction(
+                    original_features,
+                    selected_features,
+                ),
+        }
+
+    # ---------------------------------------------------------
+    # Summary
+    # ---------------------------------------------------------
+
     def summary(
         self,
         y_true,
         y_pred,
-        original_features,
-        selected_features,
-    ):
+        original_features: int,
+        selected_features: int,
+    ) -> None:
 
-        print("\n========== HQFSF Evaluation ==========\n")
-
-        print(
-            f"Accuracy          : "
-            f"{self.accuracy(y_true, y_pred):.4f}"
+        metrics = self.evaluate(
+            y_true,
+            y_pred,
+            original_features,
+            selected_features,
         )
 
-        print(
-            f"Precision         : "
-            f"{self.precision(y_true, y_pred):.4f}"
-        )
+        print("\n" + "=" * 60)
+        print("HQFSF EVALUATION SUMMARY")
+        print("=" * 60)
 
-        print(
-            f"Recall            : "
-            f"{self.recall(y_true, y_pred):.4f}"
-        )
+        for key, value in metrics.items():
 
-        print(
-            f"F1 Score          : "
-            f"{self.f1(y_true, y_pred):.4f}"
-        )
+            if "feature" in key:
 
-        print(
-            f"Feature Reduction : "
-            f"{self.feature_reduction(original_features, selected_features):.2f}%"
-        )
+                print(
+                    f"{key:20}: {value:.2f}%"
+                )
+
+            else:
+
+                print(
+                    f"{key:20}: {value:.4f}"
+                )
 
         print("\nConfusion Matrix\n")
 
@@ -195,4 +325,12 @@ class QuantumMetrics:
             )
         )
 
-        print("\n======================================\n")
+        print("=" * 60)
+
+    # ---------------------------------------------------------
+    # Representation
+    # ---------------------------------------------------------
+
+    def __repr__(self) -> str:
+
+        return "QuantumMetrics()"
