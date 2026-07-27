@@ -2,80 +2,151 @@
 Dataset Preprocessing Module
 
 Performs:
+- Remove ID column
 - Remove duplicate rows
 - Handle missing values
 - Encode categorical features
 - Standardize numerical features
 - Train/Test split
-- Save processed datasets
+- Export processed datasets
 """
 
 from pathlib import Path
 
 import pandas as pd
+
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+
+from datasets.exporter import DatasetExporter
 
 
 class DatasetPreprocessor:
     """
-    Dataset preprocessing pipeline.
+    Complete preprocessing pipeline for HQFSF.
     """
 
     def __init__(
         self,
         dataframe: pd.DataFrame,
         output_dir="datasets/processed",
-        test_size=0.2,
+        test_size=0.20,
         random_state=42,
     ):
+        """
+        Initialize preprocessing pipeline.
+        """
+
         self.df = dataframe.copy()
 
         self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         self.test_size = test_size
         self.random_state = random_state
 
         self.scaler = StandardScaler()
 
+    # ---------------------------------------------------------
+    # Remove ID Column
+    # ---------------------------------------------------------
+
+    def remove_id_column(self):
+        """
+        Remove ID column if present.
+        """
+
+        if "id" in self.df.columns:
+
+            self.df.drop(
+                columns=["id"],
+                inplace=True,
+            )
+
+            print("ID column removed.")
+
+        else:
+            print("ID column not found.")
+
+    # ---------------------------------------------------------
+    # Remove Duplicate Rows
+    # ---------------------------------------------------------
+
     def remove_duplicates(self):
         """
-        Remove duplicate rows.
+        Remove duplicate records.
         """
+
         before = len(self.df)
 
-        self.df.drop_duplicates(inplace=True)
+        self.df.drop_duplicates(
+            inplace=True
+        )
 
         after = len(self.df)
 
-        print(f"Removed {before - after} duplicate rows.")
+        removed = before - after
+
+        print(f"Removed {removed} duplicate rows.")
+
+    # ---------------------------------------------------------
+    # Handle Missing Values
+    # ---------------------------------------------------------
 
     def fill_missing_values(self):
         """
         Fill missing values.
         """
 
-        numeric_columns = self.df.select_dtypes(include="number").columns
-        categorical_columns = self.df.select_dtypes(exclude="number").columns
+        numeric_columns = self.df.select_dtypes(
+            include="number"
+        ).columns
 
-        # Numerical columns
+        categorical_columns = self.df.select_dtypes(
+            exclude="number"
+        ).columns
+
+        # Numerical Columns
+
         for column in numeric_columns:
+
+            median = self.df[column].median()
+
             self.df[column] = self.df[column].fillna(
-                self.df[column].median()
+                median
             )
 
-        # Categorical columns
+        # Categorical Columns
+
         for column in categorical_columns:
+
+            mode = self.df[column].mode()[0]
+
             self.df[column] = self.df[column].fillna(
-                self.df[column].mode()[0]
+                mode
             )
 
         print("Missing values handled successfully.")
 
+
+
+
+
+    # ---------------------------------------------------------
+    # Encode Categorical Columns
+    # ---------------------------------------------------------
+
     def encode_categorical(self):
         """
-        Encode categorical columns.
+        Encode categorical features using LabelEncoder.
+
+        Example:
+        M -> 1
+        B -> 0
         """
 
         categorical_columns = self.df.select_dtypes(
@@ -85,130 +156,217 @@ class DatasetPreprocessor:
         encoder = LabelEncoder()
 
         for column in categorical_columns:
+
             self.df[column] = encoder.fit_transform(
                 self.df[column]
             )
 
-        print("Categorical features encoded.")
+            print(f"Encoded column: {column}")
+
+        print("Categorical features encoded successfully.")
+
+    # ---------------------------------------------------------
+    # Scale Numerical Features
+    # ---------------------------------------------------------
 
     def scale_features(self):
         """
-        Scale feature columns only.
+        Standardize feature columns while keeping
+        the diagnosis column unchanged.
         """
 
-        X = self.df.iloc[:, :-1]
+        if "diagnosis" not in self.df.columns:
+            raise ValueError(
+                "Target column 'diagnosis' not found."
+            )
 
-        scaled = self.scaler.fit_transform(X)
+        # Separate features and target
 
-        X_scaled = pd.DataFrame(
-            scaled,
-            columns=X.columns,
-            index=self.df.index
+        X = self.df.drop(
+            columns=["diagnosis"]
         )
 
-        return X_scaled
+        y = self.df["diagnosis"]
+
+        # Standardization
+
+        X_scaled = self.scaler.fit_transform(
+            X
+        )
+
+        X_scaled = pd.DataFrame(
+            X_scaled,
+            columns=X.columns,
+            index=self.df.index,
+        )
+
+        # Reattach target
+
+        processed = X_scaled.copy()
+
+        processed["diagnosis"] = y.values
+
+        print("Feature scaling completed.")
+
+        return processed
+
+    # ---------------------------------------------------------
+    # Train/Test Split
+    # ---------------------------------------------------------
 
     def split_dataset(self):
         """
-        Split dataset into train and test sets.
+        Split processed dataset into
+        training and testing datasets.
         """
 
-        X_scaled = self.scale_features()
+        processed = self.scale_features()
 
-        y = self.df.iloc[:, -1]
-
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_scaled,
-            y,
-            test_size=self.test_size,
-            random_state=self.random_state,
-            stratify=y
+        X = processed.drop(
+            columns=["diagnosis"]
         )
 
-        return (
-            X_scaled,
-            X_train,
-            X_test,
-            y_train,
-            y_test
-        )
-
-    def save(self):
-        """
-        Save processed dataset and train/test splits.
-        """
+        y = processed["diagnosis"]
 
         (
-            X_scaled,
             X_train,
             X_test,
             y_train,
             y_test,
+        ) = train_test_split(
+            X,
+            y,
+            test_size=self.test_size,
+            random_state=self.random_state,
+            stratify=y,
+        )
+
+        train = X_train.copy()
+        train["diagnosis"] = y_train.values
+
+        test = X_test.copy()
+        test["diagnosis"] = y_test.values
+
+        print(
+            f"Training Samples : {len(train)}"
+        )
+
+        print(
+            f"Testing Samples  : {len(test)}"
+        )
+
+        return (
+            processed,
+            train,
+            test,
+        )
+
+
+    # ---------------------------------------------------------
+    # Save Processed Datasets
+    # ---------------------------------------------------------
+
+    def save(self):
+        """
+        Save processed dataset, training dataset,
+        testing dataset, and export into multiple formats.
+        """
+
+        (
+            processed,
+            train,
+            test,
         ) = self.split_dataset()
 
-        # --------------------------
-        # Save processed dataset
-        # --------------------------
-
-        processed = X_scaled.copy()
-
-        processed["target"] = self.df.iloc[:, -1].values
+        # ---------------------------------------------
+        # Save CSV Files
+        # ---------------------------------------------
 
         processed.to_csv(
             self.output_dir / "processed_dataset.csv",
             index=False,
         )
 
-        # --------------------------
-        # Save training set
-        # --------------------------
-
-        train = X_train.copy()
-
-        train["target"] = y_train.values
-
         train.to_csv(
             self.output_dir / "train.csv",
             index=False,
         )
-
-        # --------------------------
-        # Save testing set
-        # --------------------------
-
-        test = X_test.copy()
-
-        test["target"] = y_test.values
 
         test.to_csv(
             self.output_dir / "test.csv",
             index=False,
         )
 
-        print("\nProcessed datasets saved successfully.")
-        print(f"Processed : {self.output_dir/'processed_dataset.csv'}")
-        print(f"Train     : {self.output_dir/'train.csv'}")
-        print(f"Test      : {self.output_dir/'test.csv'}")
+        # ---------------------------------------------
+        # Export Additional Formats
+        # ---------------------------------------------
+
+        exporter = DatasetExporter(
+            dataframe=processed,
+            output_dir=self.output_dir,
+        )
+
+        exporter.save_excel()
+
+        exporter.save_json()
+
+        exporter.save_parquet()
+
+        # ---------------------------------------------
+        # Display Summary
+        # ---------------------------------------------
+
+        print("\n" + "=" * 60)
+        print("DATASETS SAVED SUCCESSFULLY")
+        print("=" * 60)
+
+        print(f"Processed Dataset : {self.output_dir/'processed_dataset.csv'}")
+        print(f"Training Dataset  : {self.output_dir/'train.csv'}")
+        print(f"Testing Dataset   : {self.output_dir/'test.csv'}")
+        print(f"Excel Dataset     : {self.output_dir/'dataset.xlsx'}")
+        print(f"JSON Dataset      : {self.output_dir/'dataset.json'}")
+        print(f"Parquet Dataset   : {self.output_dir/'dataset.parquet'}")
+
+        print("=" * 60)
+
+    # ---------------------------------------------------------
+    # Run Complete Pipeline
+    # ---------------------------------------------------------
 
     def run(self):
         """
         Execute the complete preprocessing pipeline.
         """
 
-        print("=" * 60)
-        print("HQFSF DATA PREPROCESSING")
+        print("\n" + "=" * 60)
+        print("HQFSF DATA PREPROCESSING PIPELINE")
         print("=" * 60)
 
+        # Step 1
+        self.remove_id_column()
+
+        # Step 2
         self.remove_duplicates()
 
+        # Step 3
         self.fill_missing_values()
 
+        # Step 4
         self.encode_categorical()
 
+        # Step 5
         self.save()
 
         print("=" * 60)
-        print("Preprocessing Completed Successfully")
+        print("PREPROCESSING COMPLETED SUCCESSFULLY")
         print("=" * 60)
 
         return self.df
+
+
+
+
+
+
+
+    

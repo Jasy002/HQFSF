@@ -1,3 +1,11 @@
+"""
+Datasets Package
+
+Provides utilities for dataset downloading, loading,
+validation, preprocessing, splitting, metadata generation,
+and exporting for the HQFSF project.
+"""
+
 from .downloader import DatasetDownloader
 from .loader import DatasetLoader
 from .validator import DatasetValidator

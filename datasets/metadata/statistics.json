@@ -1,0 +1,55 @@
+{
+    "dataset_name": "Breast Cancer Wisconsin Diagnostic",
+    "source": "UCI Machine Learning Repository",
+    "samples": 569,
+    "features": 30,
+    "target_column": "diagnosis",
+    "classification_type": "Binary Classification",
+    "target_distribution": {
+        "Benign": 357,
+        "Malignant": 212
+    },
+    "missing_values": 0,
+    "duplicate_rows": 0,
+    "feature_types": {
+        "numerical": 30,
+        "categorical": 1
+    },
+    "summary_statistics": {
+        "radius_mean": {
+            "count": 569,
+            "mean": 14.1273,
+            "std": 3.5240,
+            "min": 6.9810,
+            "max": 28.1100
+        },
+        "texture_mean": {
+            "count": 569,
+            "mean": 19.2896,
+            "std": 4.3010,
+            "min": 9.7100,
+            "max": 39.2800
+        },
+        "perimeter_mean": {
+            "count": 569,
+            "mean": 91.9690,
+            "std": 24.2990,
+            "min": 43.7900,
+            "max": 188.5000
+        },
+        "area_mean": {
+            "count": 569,
+            "mean": 654.8891,
+            "std": 351.9141,
+            "min": 143.5000,
+            "max": 2501.0000
+        },
+        "smoothness_mean": {
+            "count": 569,
+            "mean": 0.09636,
+            "std": 0.01406,
+            "min": 0.05263,
+            "max": 0.16340
+        }
+    }
+}

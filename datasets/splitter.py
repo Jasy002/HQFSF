@@ -70,6 +70,8 @@ class DatasetSplitter:
             stratify=stratify_labels,
         )
 
+
+
         return (
             X_train,
             X_val,
@@ -78,3 +80,50 @@ class DatasetSplitter:
             y_val,
             y_test,
         )
+
+
+    def split_dataframe(
+        self,
+        dataframe,
+        target_column="diagnosis",
+    ):
+        """
+        Split a complete dataframe into
+        training and testing dataframes.
+        """
+
+        X = dataframe.drop(
+            columns=[target_column]
+        )
+
+        y = dataframe[target_column]
+
+        X_train, X_test, y_train, y_test = self.train_test(
+            X,
+            y,
+        )
+
+        train = X_train.copy()
+        train[target_column] = y_train.values
+
+        test = X_test.copy()
+        test[target_column] = y_test.values
+
+        return train, test
+
+    def summary(self):
+        """
+        Display splitter configuration.
+        """
+
+        print("=" * 50)
+        print("Dataset Split Configuration")
+        print("=" * 50)
+        print(f"Test Size       : {self.test_size}")
+        print(f"Validation Size : {self.validation_size}")
+        print(f"Random State    : {self.random_state}")
+        print(f"Stratified      : {self.stratify}")
+        print("=" * 50)
+
+
+      
